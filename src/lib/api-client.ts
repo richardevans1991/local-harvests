@@ -9,19 +9,27 @@ export interface PublicUser {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error ?? "Request failed");
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error ?? "Request failed");
+    }
+    return data as T;
+  } finally {
+    clearTimeout(timeout);
   }
-  return data as T;
 }
 
 export const api = {
