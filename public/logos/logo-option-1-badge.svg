@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Local Harvest badge logo">
+  <circle cx="100" cy="100" r="96" fill="#f7f1e6"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#9aad78" stroke-width="6"/>
+  <circle cx="100" cy="100" r="78" fill="#d0d9be" opacity="0.5"/>
+  <!-- Barn -->
+  <path d="M62 118 L100 88 L138 118 V142 H62 Z" fill="#b85c38"/>
+  <rect x="88" y="126" width="24" height="16" fill="#5c4033"/>
+  <!-- Wheat -->
+  <g fill="#c9924f" stroke="#849a66" stroke-width="2">
+    <ellipse cx="100" cy="72" rx="6" ry="14"/>
+    <path d="M88 78 Q84 58 92 48" fill="none" stroke="#c9924f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M94 76 Q90 54 98 44" fill="none" stroke="#c9924f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M106 76 Q110 54 102 44" fill="none" stroke="#c9924f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M112 78 Q116 58 108 48" fill="none" stroke="#c9924f" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <rect x="96" y="82" width="8" height="36" fill="#849a66"/>
+  <!-- Hills -->
+  <path d="M30 142 Q70 128 100 142 T170 142 V170 H30 Z" fill="#9aad78" opacity="0.7"/>
+</svg>

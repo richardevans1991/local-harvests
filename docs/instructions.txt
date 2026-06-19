@@ -1,0 +1,8 @@
+Fix the buttons and add new features:
+
+1. Make Add to Cart work properly (add items and update cart count)
+2. In farmer dashboard, make "Add Product" fully working
+3. Add ability for farmers to create new categories (not just use existing ones)
+4. Make the design warmer and more farm-like
+
+Then restart the dev server.

@@ -1,0 +1,45 @@
+Build a modern marketplace platform called "Local Harvest" that connects customers with local farm shops.
+
+**Key Features:**
+
+1. **User Accounts**
+   - Customer registration and login (email + password)
+   - Farmer accounts (separate login for farm owners)
+   - Simple authentication system
+
+2. **Homepage (Marketplace Directory)**
+   - Beautiful hero section: "Fresh food from farms near you"
+   - Search bar + location filters
+   - Grid of local farm shops with photo, name, short description, and distance
+   - Clicking a farm opens that farm's personal store
+
+3. **Individual Farm Store**
+   - Farm header with banner photo, name, description
+   - Product categories: Meat & Poultry, Bakery, Dairy & Milk, Vegetables & Produce, Eggs, Honey & Jams, Cheese, etc.
+   - Product grid with images, name, price, description
+   - Add to Cart functionality
+
+4. **Shopping Cart & Checkout**
+   - Persistent shopping cart
+   - Simple checkout page
+
+5. **Farmer Admin Dashboard**
+   - Farmers can log in and manage their store:
+     - Add / edit / remove products
+     - Upload product photos
+     - Update farm profile and banner
+
+Tech stack: Next.js (App Router) + Tailwind CSS + TypeScript. 
+Use localStorage or a simple in-memory database (like Zustand or local JSON) for data persistence for now.
+
+Design: Warm, natural, earthy colors (greens, browns, beige). Clean, trustworthy, mobile-friendly design.
+
+Start by setting up:
+- Authentication (login/register for customers and farmers)
+- Homepage with sample farms
+- Individual farm store pages
+- Basic cart
+
+Then add the farmer dashboard.
+
+Make the whole thing look professional and functional.

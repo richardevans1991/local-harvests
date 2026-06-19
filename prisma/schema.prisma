@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String
+  farm         Farm?
+  createdAt    DateTime @default(now())
+}
+
+model Farm {
+  id               String    @id
+  name             String
+  description      String
+  shortDescription String
+  image            String
+  banner           String
+  location         String
+  distance         Float
+  offersPickup     Boolean   @default(true)
+  offersDelivery   Boolean   @default(false)
+  deliveryNotes    String?
+  ownerId          String    @unique
+  owner            User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  products         Product[]
+}
+
+model Product {
+  id          String @id @default(cuid())
+  farmId      String
+  farm        Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  price       Float
+  image       String
+  category    String
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  customerName      String
+  email             String
+  phone             String
+  pickupDate        String
+  fulfillmentMethod String      @default("pickup")
+  deliveryAddress   String?
+  notes             String?
+  total             Float
+  status            String      @default("pending")
+  stripeSessionId   String?     @unique
+  userId            String?
+  createdAt         DateTime    @default(now())
+  items             OrderItem[]
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  name      String
+  price     Float
+  quantity  Int
+  image     String
+}
