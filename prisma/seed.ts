@@ -8,6 +8,7 @@ async function main() {
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.farmCategory.deleteMany();
   await prisma.farm.deleteMany();
   await prisma.user.deleteMany();
 
@@ -58,7 +59,16 @@ async function main() {
     });
   }
 
-  console.log("Database seeded with farms, products, and demo farmers.");
+  const categoryPairs = Array.from(
+    new Map(SAMPLE_PRODUCTS.map((p) => [`${p.farmId}:${p.category}`, { farmId: p.farmId, name: p.category }])).values()
+  );
+  for (const { farmId, name } of categoryPairs) {
+    await prisma.farmCategory.create({
+      data: { farmId, name },
+    });
+  }
+
+  console.log("Database seeded with farms, products, categories, and demo farmers.");
 }
 
 main()

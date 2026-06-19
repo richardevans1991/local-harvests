@@ -4,8 +4,7 @@ import SafeImage from "@/components/SafeImage";
 import { isValidImageUrl } from "@/lib/image-utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import type { Farm, Product } from "@/types";
-import { DEFAULT_PRODUCT_CATEGORIES } from "@/types";
+import type { Farm, FarmCategory, Product } from "@/types";
 import { api } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -16,6 +15,7 @@ export default function FarmerDashboard() {
 
   const [farm, setFarm] = useState<Farm | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<FarmCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [farmName, setFarmName] = useState("");
@@ -31,25 +31,31 @@ export default function FarmerDashboard() {
   const [productDescription, setProductDescription] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [productImage, setProductImage] = useState("");
-  const [productCategory, setProductCategory] = useState("Vegetables & Produce");
+  const [productCategory, setProductCategory] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [productSaved, setProductSaved] = useState(false);
+  const [categorySaved, setCategorySaved] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [categorySubmitting, setCategorySubmitting] = useState(false);
 
-  const categoryOptions = useMemo(() => {
-    const fromProducts = products.map((p) => p.category);
-    return Array.from(new Set([...DEFAULT_PRODUCT_CATEGORIES, ...fromProducts])).sort();
-  }, [products]);
+  const categoryNames = useMemo(() => categories.map((c) => c.name).sort(), [categories]);
 
   const farmId = currentUser?.farmId;
 
   const loadFarmData = async (id: string) => {
-    const { farm, products } = await api.farms.get(id);
+    const { farm, products, categories: loadedCategories } = await api.farms.get(id);
     setFarm(farm);
     setProducts(products);
+    setCategories(loadedCategories);
+    if (!productCategory && loadedCategories.length > 0) {
+      setProductCategory(loadedCategories[0].name);
+    }
     setFarmName(farm.name);
     setFarmDescription(farm.description);
     setFarmShortDescription(farm.shortDescription);
@@ -130,8 +136,89 @@ export default function FarmerDashboard() {
     setProductDescription("");
     setProductPrice("");
     setProductImage("");
-    setProductCategory("Vegetables & Produce");
+    setProductCategory(categories[0]?.name ?? "");
     setEditingId(null);
+  };
+
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    const name = newCategoryName.trim();
+    if (!name) {
+      setError("Enter a category name.");
+      return;
+    }
+
+    setCategorySubmitting(true);
+    try {
+      const { category } = await api.categories.create(farmId, name);
+      setCategories((prev) => [...prev, category].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewCategoryName("");
+      if (!productCategory) setProductCategory(category.name);
+      setCategorySaved(true);
+      setTimeout(() => setCategorySaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add category.");
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
+  const handleUpdateCategory = async (categoryId: string) => {
+    setError("");
+    const name = editingCategoryName.trim();
+    if (!name) {
+      setError("Category name cannot be empty.");
+      return;
+    }
+
+    setCategorySubmitting(true);
+    try {
+      const { category } = await api.categories.update(categoryId, name);
+      setCategories((prev) =>
+        prev
+          .map((c) => (c.id === categoryId ? category : c))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      );
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.category === categories.find((c) => c.id === categoryId)?.name
+            ? { ...p, category: category.name }
+            : p
+        )
+      );
+      if (productCategory === categories.find((c) => c.id === categoryId)?.name) {
+        setProductCategory(category.name);
+      }
+      setEditingCategoryId(null);
+      setEditingCategoryName("");
+      setCategorySaved(true);
+      setTimeout(() => setCategorySaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update category.");
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
+  const handleRemoveCategory = async (categoryId: string) => {
+    setError("");
+    const removed = categories.find((c) => c.id === categoryId);
+    try {
+      await api.categories.remove(categoryId);
+      const remaining = categories.filter((c) => c.id !== categoryId);
+      setCategories(remaining);
+      if (removed && productCategory === removed.name) {
+        setProductCategory(remaining[0]?.name ?? "");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove category.");
+    }
+  };
+
+  const startEditCategory = (category: FarmCategory) => {
+    setEditingCategoryId(category.id);
+    setEditingCategoryName(category.name);
   };
 
   const handleProductSubmit = async (e: React.FormEvent) => {
@@ -161,7 +248,11 @@ export default function FarmerDashboard() {
       return;
     }
     if (!category) {
-      setError("Choose or type a category.");
+      setError("Choose a category. Add one in Shop Categories first.");
+      return;
+    }
+    if (!categoryNames.includes(category)) {
+      setError(`Add "${category}" as a shop category before using it on a product.`);
       return;
     }
 
@@ -330,7 +421,7 @@ export default function FarmerDashboard() {
             {editingId ? "Edit Product" : "Add Product"}
           </h2>
           <p className="mt-1 text-sm text-harvest-brown/80">
-            Pick a category or type a new one (e.g. Preserves, Flowers).
+            Choose a category from your shop categories.
           </p>
           <form onSubmit={handleProductSubmit} className="mt-4 space-y-4">
             <Field label="Product name" value={productName} onChange={setProductName} required />
@@ -353,19 +444,23 @@ export default function FarmerDashboard() {
               <label className="mb-1 block text-sm font-medium text-harvest-brown">
                 Category
               </label>
-              <input
-                list="product-categories"
+              <select
                 required
                 value={productCategory}
                 onChange={(e) => setProductCategory(e.target.value)}
-                placeholder="Type or select a category"
-                className="w-full rounded-lg border border-harvest-tan px-4 py-2.5 outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20"
-              />
-              <datalist id="product-categories">
-                {categoryOptions.map((cat) => (
-                  <option key={cat} value={cat} />
-                ))}
-              </datalist>
+                disabled={categories.length === 0}
+                className="w-full rounded-lg border border-harvest-tan px-4 py-2.5 outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20 disabled:bg-harvest-parchment/50"
+              >
+                {categories.length === 0 ? (
+                  <option value="">Add a shop category first</option>
+                ) : (
+                  categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))
+                )}
+              </select>
             </div>
             <div className="flex gap-3">
               <button
@@ -394,6 +489,93 @@ export default function FarmerDashboard() {
           </form>
         </section>
       </div>
+
+      <section className="farm-panel mt-8 p-6">
+        <h2 className="font-serif text-xl font-semibold text-harvest-green">
+          Shop Categories
+        </h2>
+        <p className="mt-1 text-sm text-harvest-brown/80">
+          Add the categories customers will browse in your shop (e.g. Preserves, Flowers).
+        </p>
+        <form onSubmit={handleAddCategory} className="mt-4 flex flex-wrap gap-3">
+          <input
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            placeholder="New category name"
+            className="min-w-0 flex-1 rounded-lg border border-harvest-tan px-4 py-2.5 outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20"
+          />
+          <button
+            type="submit"
+            disabled={categorySubmitting}
+            className="farm-btn-primary px-5 py-2.5 text-sm disabled:opacity-60"
+          >
+            {categorySubmitting ? "Adding..." : categorySaved ? "✓ Added!" : "Add category"}
+          </button>
+        </form>
+        {categories.length === 0 ? (
+          <p className="mt-4 text-sm text-harvest-brown/80">
+            No categories yet. Add your first above before adding products.
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-harvest-tan/40">
+            {categories.map((category) => (
+              <li
+                key={category.id}
+                className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
+              >
+                {editingCategoryId === category.id ? (
+                  <>
+                    <input
+                      value={editingCategoryName}
+                      onChange={(e) => setEditingCategoryName(e.target.value)}
+                      className="min-w-0 flex-1 rounded-lg border border-harvest-tan px-3 py-2 text-sm outline-none focus:border-harvest-green"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateCategory(category.id)}
+                      disabled={categorySubmitting}
+                      className="rounded-full bg-harvest-green px-3 py-1.5 text-sm text-harvest-brown"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCategoryId(null);
+                        setEditingCategoryName("");
+                      }}
+                      className="rounded-full border border-harvest-tan px-3 py-1.5 text-sm text-harvest-brown"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 font-medium text-harvest-green">{category.name}</span>
+                    <span className="text-xs text-harvest-brown/60">
+                      {products.filter((p) => p.category === category.name).length} product(s)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => startEditCategory(category)}
+                      className="rounded-full border border-harvest-tan px-3 py-1.5 text-sm text-harvest-brown hover:border-harvest-green hover:text-harvest-green"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategory(category.id)}
+                      className="rounded-full border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="farm-panel mt-8 p-6">
         <h2 className="font-serif text-xl font-semibold text-harvest-green">

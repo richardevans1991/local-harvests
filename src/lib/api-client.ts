@@ -1,4 +1,4 @@
-import type { Farm, FulfillmentMethod, Product, UserRole } from "@/types";
+import type { Farm, FarmCategory, FulfillmentMethod, Product, UserRole } from "@/types";
 
 export interface PublicUser {
   id: string;
@@ -49,12 +49,29 @@ export const api = {
   },
   farms: {
     list: () => request<{ farms: Farm[] }>("/api/farms"),
-    get: (id: string) => request<{ farm: Farm; products: Product[] }>(`/api/farms/${id}`),
+    get: (id: string) =>
+      request<{ farm: Farm; products: Product[]; categories: FarmCategory[] }>(
+        `/api/farms/${id}`
+      ),
     update: (id: string, data: Partial<Farm>) =>
       request<{ farm: Farm }>(`/api/farms/${id}`, {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+  },
+  categories: {
+    create: (farmId: string, name: string) =>
+      request<{ category: FarmCategory }>("/api/categories", {
+        method: "POST",
+        body: JSON.stringify({ farmId, name }),
+      }),
+    update: (id: string, name: string) =>
+      request<{ category: FarmCategory }>(`/api/categories/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+      }),
+    remove: (id: string) =>
+      request<{ success: boolean }>(`/api/categories/${id}`, { method: "DELETE" }),
   },
   products: {
     create: (farmId: string, data: Omit<Product, "id" | "farmId">) =>

@@ -9,14 +9,16 @@ import type { Farm, Product } from "@/types";
 interface FarmStoreProps {
   farm: Farm;
   products: Product[];
+  categories?: string[];
 }
 
-export default function FarmStore({ farm, products }: FarmStoreProps) {
+export default function FarmStore({ farm, products, categories = [] }: FarmStoreProps) {
   const [category, setCategory] = useState<string>("All");
 
   const availableCategories = useMemo(() => {
-    return Array.from(new Set(products.map((p) => p.category))).sort();
-  }, [products]);
+    const fromDb = categories.length > 0 ? categories : products.map((p) => p.category);
+    return Array.from(new Set(fromDb)).sort();
+  }, [products, categories]);
 
   const filteredProducts = useMemo(() => {
     if (category === "All") return products;

@@ -10,6 +10,12 @@ export interface User {
 
 export type ProductCategory = string;
 
+export interface FarmCategory {
+  id: string;
+  farmId: string;
+  name: string;
+}
+
 export interface Product {
   id: string;
   farmId: string;

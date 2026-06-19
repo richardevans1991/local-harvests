@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { validateFarmCategory } from "@/lib/categories";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -13,6 +14,11 @@ export async function POST(request: Request) {
     const farm = await prisma.farm.findUnique({ where: { id: body.farmId } });
     if (!farm || farm.ownerId !== user.id) {
       return NextResponse.json({ error: "Farm not found." }, { status: 404 });
+    }
+
+    const categoryError = await validateFarmCategory(body.farmId, body.category);
+    if (categoryError) {
+      return NextResponse.json({ error: categoryError }, { status: 400 });
     }
 
     const product = await prisma.product.create({

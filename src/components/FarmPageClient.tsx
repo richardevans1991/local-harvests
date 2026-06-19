@@ -12,15 +12,17 @@ interface FarmPageClientProps {
 export default function FarmPageClient({ id }: FarmPageClientProps) {
   const [farm, setFarm] = useState<Farm | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     api.farms
       .get(id)
-      .then(({ farm, products }) => {
+      .then(({ farm, products, categories: loadedCategories }) => {
         setFarm(farm);
         setProducts(products);
+        setCategories(loadedCategories.map((c) => c.name));
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -44,5 +46,5 @@ export default function FarmPageClient({ id }: FarmPageClientProps) {
     );
   }
 
-  return <FarmStore farm={farm} products={products} />;
+  return <FarmStore farm={farm} products={products} categories={categories} />;
 }

@@ -30,8 +30,18 @@ model Farm {
   offersDelivery   Boolean   @default(false)
   deliveryNotes    String?
   ownerId          String    @unique
-  owner            User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner            User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   products         Product[]
+  categories       FarmCategory[]
+}
+
+model FarmCategory {
+  id     String @id @default(cuid())
+  farmId String
+  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  name   String
+
+  @@unique([farmId, name])
 }
 
 model Product {

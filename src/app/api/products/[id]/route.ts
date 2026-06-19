@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { validateFarmCategory } from "@/lib/categories";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -29,6 +30,14 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const body = await request.json();
+
+    if (body.category) {
+      const categoryError = await validateFarmCategory(existing.farmId, body.category);
+      if (categoryError) {
+        return NextResponse.json({ error: categoryError }, { status: 400 });
+      }
+    }
+
     const product = await prisma.product.update({
       where: { id },
       data: {

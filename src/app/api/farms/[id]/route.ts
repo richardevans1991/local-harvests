@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ensureFarmCategories } from "@/lib/categories";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -14,12 +15,15 @@ export async function GET(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Farm not found." }, { status: 404 });
     }
 
-    const products = await prisma.product.findMany({
-      where: { farmId: id },
-      orderBy: { name: "asc" },
-    });
+    const [products, categories] = await Promise.all([
+      prisma.product.findMany({
+        where: { farmId: id },
+        orderBy: { name: "asc" },
+      }),
+      ensureFarmCategories(id),
+    ]);
 
-    return NextResponse.json({ farm, products });
+    return NextResponse.json({ farm, products, categories });
   } catch {
     return NextResponse.json({ error: "Failed to load farm." }, { status: 500 });
   }
