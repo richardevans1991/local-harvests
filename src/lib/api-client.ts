@@ -60,15 +60,15 @@ export const api = {
       }),
   },
   categories: {
-    create: (farmId: string, name: string) =>
+    create: (farmId: string, data: { name: string; image?: string | null }) =>
       request<{ category: FarmCategory }>("/api/categories", {
         method: "POST",
-        body: JSON.stringify({ farmId, name }),
+        body: JSON.stringify({ farmId, ...data }),
       }),
-    update: (id: string, name: string) =>
+    update: (id: string, data: { name: string; image?: string | null }) =>
       request<{ category: FarmCategory }>(`/api/categories/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(data),
       }),
     remove: (id: string) =>
       request<{ success: boolean }>(`/api/categories/${id}`, { method: "DELETE" }),

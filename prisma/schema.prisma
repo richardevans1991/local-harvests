@@ -36,10 +36,11 @@ model Farm {
 }
 
 model FarmCategory {
-  id     String @id @default(cuid())
+  id     String  @id @default(cuid())
   farmId String
-  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  farm   Farm    @relation(fields: [farmId], references: [id], onDelete: Cascade)
   name   String
+  image  String?
 
   @@unique([farmId, name])
 }

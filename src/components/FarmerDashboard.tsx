@@ -33,8 +33,10 @@ export default function FarmerDashboard() {
   const [productImage, setProductImage] = useState("");
   const [productCategory, setProductCategory] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryImage, setNewCategoryImage] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
+  const [editingCategoryImage, setEditingCategoryImage] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -144,16 +146,25 @@ export default function FarmerDashboard() {
     e.preventDefault();
     setError("");
     const name = newCategoryName.trim();
+    const image = newCategoryImage.trim();
     if (!name) {
       setError("Enter a category name.");
+      return;
+    }
+    if (image && !isValidImageUrl(image)) {
+      setError("Category image must be a full URL starting with https://");
       return;
     }
 
     setCategorySubmitting(true);
     try {
-      const { category } = await api.categories.create(farmId, name);
+      const { category } = await api.categories.create(farmId, {
+        name,
+        image: image || null,
+      });
       setCategories((prev) => [...prev, category].sort((a, b) => a.name.localeCompare(b.name)));
       setNewCategoryName("");
+      setNewCategoryImage("");
       if (!productCategory) setProductCategory(category.name);
       setCategorySaved(true);
       setTimeout(() => setCategorySaved(false), 2000);
@@ -167,14 +178,22 @@ export default function FarmerDashboard() {
   const handleUpdateCategory = async (categoryId: string) => {
     setError("");
     const name = editingCategoryName.trim();
+    const image = editingCategoryImage.trim();
     if (!name) {
       setError("Category name cannot be empty.");
+      return;
+    }
+    if (image && !isValidImageUrl(image)) {
+      setError("Category image must be a full URL starting with https://");
       return;
     }
 
     setCategorySubmitting(true);
     try {
-      const { category } = await api.categories.update(categoryId, name);
+      const { category } = await api.categories.update(categoryId, {
+        name,
+        image: image || null,
+      });
       setCategories((prev) =>
         prev
           .map((c) => (c.id === categoryId ? category : c))
@@ -192,6 +211,7 @@ export default function FarmerDashboard() {
       }
       setEditingCategoryId(null);
       setEditingCategoryName("");
+      setEditingCategoryImage("");
       setCategorySaved(true);
       setTimeout(() => setCategorySaved(false), 2000);
     } catch (err) {
@@ -219,6 +239,7 @@ export default function FarmerDashboard() {
   const startEditCategory = (category: FarmCategory) => {
     setEditingCategoryId(category.id);
     setEditingCategoryName(category.name);
+    setEditingCategoryImage(category.image ?? "");
   };
 
   const handleProductSubmit = async (e: React.FormEvent) => {
@@ -497,20 +518,28 @@ export default function FarmerDashboard() {
         <p className="mt-1 text-sm text-harvest-brown/80">
           Add the categories customers will browse in your shop (e.g. Preserves, Flowers).
         </p>
-        <form onSubmit={handleAddCategory} className="mt-4 flex flex-wrap gap-3">
+        <form onSubmit={handleAddCategory} className="mt-4 space-y-3">
+          <div className="flex flex-wrap gap-3">
+            <input
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="New category name"
+              className="min-w-0 flex-1 rounded-lg border border-harvest-tan px-4 py-2.5 outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20"
+            />
+            <button
+              type="submit"
+              disabled={categorySubmitting}
+              className="farm-btn-primary px-5 py-2.5 text-sm disabled:opacity-60"
+            >
+              {categorySubmitting ? "Adding..." : categorySaved ? "✓ Added!" : "Add category"}
+            </button>
+          </div>
           <input
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            placeholder="New category name"
-            className="min-w-0 flex-1 rounded-lg border border-harvest-tan px-4 py-2.5 outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20"
+            value={newCategoryImage}
+            onChange={(e) => setNewCategoryImage(e.target.value)}
+            placeholder="Category image URL (optional) — https://images.unsplash.com/..."
+            className="w-full rounded-lg border border-harvest-tan px-4 py-2.5 text-sm outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20"
           />
-          <button
-            type="submit"
-            disabled={categorySubmitting}
-            className="farm-btn-primary px-5 py-2.5 text-sm disabled:opacity-60"
-          >
-            {categorySubmitting ? "Adding..." : categorySaved ? "✓ Added!" : "Add category"}
-          </button>
         </form>
         {categories.length === 0 ? (
           <p className="mt-4 text-sm text-harvest-brown/80">
@@ -524,34 +553,70 @@ export default function FarmerDashboard() {
                 className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
               >
                 {editingCategoryId === category.id ? (
-                  <>
+                  <div className="w-full space-y-3">
                     <input
                       value={editingCategoryName}
                       onChange={(e) => setEditingCategoryName(e.target.value)}
-                      className="min-w-0 flex-1 rounded-lg border border-harvest-tan px-3 py-2 text-sm outline-none focus:border-harvest-green"
+                      placeholder="Category name"
+                      className="w-full rounded-lg border border-harvest-tan px-3 py-2 text-sm outline-none focus:border-harvest-green"
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateCategory(category.id)}
-                      disabled={categorySubmitting}
-                      className="rounded-full bg-harvest-green px-3 py-1.5 text-sm text-harvest-brown"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingCategoryId(null);
-                        setEditingCategoryName("");
-                      }}
-                      className="rounded-full border border-harvest-tan px-3 py-1.5 text-sm text-harvest-brown"
-                    >
-                      Cancel
-                    </button>
-                  </>
+                    <input
+                      value={editingCategoryImage}
+                      onChange={(e) => setEditingCategoryImage(e.target.value)}
+                      placeholder="Category image URL (optional) — https://images.unsplash.com/..."
+                      className="w-full rounded-lg border border-harvest-tan px-3 py-2 text-sm outline-none focus:border-harvest-green"
+                    />
+                    {editingCategoryImage.trim() && (
+                      <div className="relative h-24 w-full max-w-xs overflow-hidden rounded-lg border border-harvest-tan/60">
+                        <SafeImage
+                          src={editingCategoryImage}
+                          alt="Category preview"
+                          fill
+                          className="object-cover"
+                          sizes="200px"
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateCategory(category.id)}
+                        disabled={categorySubmitting}
+                        className="rounded-full bg-harvest-green px-3 py-1.5 text-sm text-harvest-brown"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCategoryId(null);
+                          setEditingCategoryName("");
+                          setEditingCategoryImage("");
+                        }}
+                        className="rounded-full border border-harvest-tan px-3 py-1.5 text-sm text-harvest-brown"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <>
-                    <span className="flex-1 font-medium text-harvest-green">{category.name}</span>
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-harvest-tan/50 bg-harvest-parchment/50">
+                      {category.image ? (
+                        <SafeImage
+                          src={category.image}
+                          alt={category.name}
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
+                      ) : (
+                        <span className="flex h-full items-center justify-center text-lg text-harvest-brown/40">
+                          🏷️
+                        </span>
+                      )}
+                    </div>
+                    <span className="min-w-0 flex-1 font-medium text-harvest-green">{category.name}</span>
                     <span className="text-xs text-harvest-brown/60">
                       {products.filter((p) => p.category === category.name).length} product(s)
                     </span>

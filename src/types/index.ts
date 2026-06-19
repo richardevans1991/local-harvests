@@ -14,6 +14,7 @@ export interface FarmCategory {
   id: string;
   farmId: string;
   name: string;
+  image?: string | null;
 }
 
 export interface Product {

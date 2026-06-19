@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeCategoryImage, validateCategoryImage } from "@/lib/category-image";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -9,11 +10,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const { farmId, name } = (await request.json()) as { farmId: string; name: string };
+    const { farmId, name, image } = (await request.json()) as {
+      farmId: string;
+      name: string;
+      image?: string | null;
+    };
     const trimmed = name?.trim();
 
     if (!farmId || !trimmed) {
       return NextResponse.json({ error: "Category name is required." }, { status: 400 });
+    }
+
+    const imageError = validateCategoryImage(image);
+    if (imageError) {
+      return NextResponse.json({ error: imageError }, { status: 400 });
     }
 
     const farm = await prisma.farm.findUnique({ where: { id: farmId } });
@@ -29,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     const category = await prisma.farmCategory.create({
-      data: { farmId, name: trimmed },
+      data: { farmId, name: trimmed, image: normalizeCategoryImage(image) },
     });
 
     return NextResponse.json({ category });

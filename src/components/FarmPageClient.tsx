@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import FarmStore from "@/components/FarmStore";
 import { api } from "@/lib/api-client";
-import type { Farm, Product } from "@/types";
+import type { Farm, FarmCategory, Product } from "@/types";
 
 interface FarmPageClientProps {
   id: string;
@@ -12,7 +12,7 @@ interface FarmPageClientProps {
 export default function FarmPageClient({ id }: FarmPageClientProps) {
   const [farm, setFarm] = useState<Farm | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<FarmCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -22,7 +22,7 @@ export default function FarmPageClient({ id }: FarmPageClientProps) {
       .then(({ farm, products, categories: loadedCategories }) => {
         setFarm(farm);
         setProducts(products);
-        setCategories(loadedCategories.map((c) => c.name));
+        setCategories(loadedCategories);
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));

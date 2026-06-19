@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeCategoryImage, validateCategoryImage } from "@/lib/category-image";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -23,10 +24,18 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Category not found." }, { status: 404 });
     }
 
-    const { name } = (await request.json()) as { name: string };
+    const { name, image } = (await request.json()) as {
+      name: string;
+      image?: string | null;
+    };
     const trimmed = name?.trim();
     if (!trimmed) {
       return NextResponse.json({ error: "Category name is required." }, { status: 400 });
+    }
+
+    const imageError = validateCategoryImage(image);
+    if (imageError) {
+      return NextResponse.json({ error: imageError }, { status: 400 });
     }
 
     const duplicate = await prisma.farmCategory.findUnique({
@@ -39,7 +48,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     const [updated] = await prisma.$transaction([
       prisma.farmCategory.update({
         where: { id },
-        data: { name: trimmed },
+        data: {
+          name: trimmed,
+          ...(image !== undefined ? { image: normalizeCategoryImage(image) } : {}),
+        },
       }),
       prisma.product.updateMany({
         where: { farmId: category.farmId, category: category.name },

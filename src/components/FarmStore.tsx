@@ -4,21 +4,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ProductCard from "@/components/ProductCard";
-import type { Farm, Product } from "@/types";
+import SafeImage from "@/components/SafeImage";
+import type { Farm, FarmCategory, Product } from "@/types";
 
 interface FarmStoreProps {
   farm: Farm;
   products: Product[];
-  categories?: string[];
+  categories?: FarmCategory[];
 }
 
 export default function FarmStore({ farm, products, categories = [] }: FarmStoreProps) {
   const [category, setCategory] = useState<string>("All");
 
   const availableCategories = useMemo(() => {
-    const fromDb = categories.length > 0 ? categories : products.map((p) => p.category);
-    return Array.from(new Set(fromDb)).sort();
-  }, [products, categories]);
+    if (categories.length > 0) {
+      return [...categories].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    const names = Array.from(new Set(products.map((p) => p.category))).sort();
+    return names.map((name) => ({ id: name, farmId: farm.id, name, image: null }));
+  }, [products, categories, farm.id]);
 
   const filteredProducts = useMemo(() => {
     if (category === "All") return products;
@@ -70,29 +74,20 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <div className="mb-6 flex flex-wrap gap-2">
-          <button
-            onClick={() => setCategory("All")}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              category === "All"
-                ? "bg-harvest-green text-harvest-brown shadow-sm"
-                : "bg-white/80 text-harvest-brown ring-1 ring-harvest-wheat/60 hover:bg-harvest-parchment"
-            }`}
-          >
-            All
-          </button>
+        <div className="mb-6 flex flex-wrap gap-3">
+          <CategoryChip
+            label="All"
+            selected={category === "All"}
+            onSelect={() => setCategory("All")}
+          />
           {availableCategories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                category === cat
-                  ? "bg-harvest-green text-harvest-brown shadow-sm"
-                  : "bg-white/80 text-harvest-brown ring-1 ring-harvest-wheat/60 hover:bg-harvest-parchment"
-              }`}
-            >
-              {cat}
-            </button>
+            <CategoryChip
+              key={cat.id}
+              label={cat.name}
+              image={cat.image}
+              selected={category === cat.name}
+              onSelect={() => setCategory(cat.name)}
+            />
           ))}
         </div>
 
@@ -109,5 +104,39 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
         )}
       </div>
     </div>
+  );
+}
+
+function CategoryChip({
+  label,
+  image,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  image?: string | null;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-sm font-semibold transition ${
+        selected
+          ? "bg-harvest-green text-harvest-brown shadow-sm"
+          : "bg-white/80 text-harvest-brown ring-1 ring-harvest-wheat/60 hover:bg-harvest-parchment"
+      }`}
+    >
+      <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-harvest-parchment/80">
+        {image ? (
+          <SafeImage src={image} alt={label} fill className="object-cover" sizes="32px" />
+        ) : (
+          <span className="flex h-full items-center justify-center text-xs text-harvest-brown/50">
+            {label === "All" ? "✦" : "🏷️"}
+          </span>
+        )}
+      </span>
+      {label}
+    </button>
   );
 }
