@@ -1,3 +1,4 @@
+import { getAppUrl } from "@/lib/app-url";
 import { sendEmail, isEmailConfigured } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
@@ -312,7 +313,7 @@ export async function notifyOrderParties(orderId: string) {
   });
 
   const farmNameById = new Map(farms.map((farm) => [farm.id, farm.name]));
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
   const dashboardUrl = `${appUrl}/farmer/dashboard`;
   const marketplaceUrl = appUrl;
 

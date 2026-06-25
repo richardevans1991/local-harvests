@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAppUrl } from "@/lib/app-url";
 import { getSessionUser } from "@/lib/auth";
 import { validateFulfillmentChoice, type FulfillmentMethod } from "@/lib/fulfillment";
 import { calculateCheckoutFees } from "@/lib/order-fees";
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ mode: "pickup", orderId: order.id });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl = getAppUrl();
     const stripe = getStripe();
 
     const session = await stripe.checkout.sessions.create({

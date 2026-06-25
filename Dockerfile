@@ -11,7 +11,6 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL="file:./prisma/dev.db"
 ENV AUTH_SECRET="build-placeholder"
-ENV NEXT_PUBLIC_APP_URL="http://localhost:3000"
 RUN npm run build
 
 ENV NODE_ENV=production

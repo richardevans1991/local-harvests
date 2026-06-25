@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAppUrl } from "@/lib/app-url";
 import { getSessionUser } from "@/lib/auth";
 import { FARMER_PLANS } from "@/lib/farmer-plans";
 import { getFarmerSubscriptionView } from "@/lib/farmer-subscription";
@@ -47,7 +48,7 @@ export async function POST() {
     }
 
     const plan = FARMER_PLANS[user.subscriptionTier as keyof typeof FARMER_PLANS];
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl = getAppUrl();
     const stripe = getStripe();
 
     let customerId = user.stripeCustomerId;
