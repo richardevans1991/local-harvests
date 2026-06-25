@@ -19,7 +19,6 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 EXPOSE 3000
-VOLUME ["/app/prisma"]
 
 RUN chmod +x scripts/docker-entrypoint.sh
 CMD ["./scripts/docker-entrypoint.sh"]
