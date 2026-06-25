@@ -1,6 +1,8 @@
 "use client";
 
+import FarmerSubscriptionBanner from "@/components/FarmerSubscriptionBanner";
 import SafeImage from "@/components/SafeImage";
+import type { FarmerSubscriptionView } from "@/lib/farmer-subscription";
 import { isValidImageUrl } from "@/lib/image-utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -45,8 +47,10 @@ export default function FarmerDashboard() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [categorySubmitting, setCategorySubmitting] = useState(false);
+  const [subscription, setSubscription] = useState<FarmerSubscriptionView | null>(null);
 
   const categoryNames = useMemo(() => categories.map((c) => c.name).sort(), [categories]);
+  const canEdit = subscription?.canManageShop ?? false;
 
   const farmId = currentUser?.farmId;
 
@@ -74,6 +78,17 @@ export default function FarmerDashboard() {
       router.replace("/farmer/login");
       return;
     }
+
+    api.farmer.subscription
+      .get()
+      .then(({ subscription: sub }) => {
+        setSubscription(sub);
+        if (sub.needsPlanSelection) {
+          router.replace("/farmer/plans");
+        }
+      })
+      .catch(() => setError("Failed to load subscription details."));
+
     if (!farmId) {
       setLoading(false);
       return;
@@ -109,6 +124,7 @@ export default function FarmerDashboard() {
   }
 
   const handleSaveProfile = async () => {
+    if (!canEdit) return;
     if (!offersPickup && !offersDelivery) {
       setError("Enable at least one option: Click & Collect or Delivery.");
       return;
@@ -143,6 +159,7 @@ export default function FarmerDashboard() {
   };
 
   const handleAddCategory = async (e: React.FormEvent) => {
+    if (!canEdit) return;
     e.preventDefault();
     setError("");
     const name = newCategoryName.trim();
@@ -176,6 +193,7 @@ export default function FarmerDashboard() {
   };
 
   const handleUpdateCategory = async (categoryId: string) => {
+    if (!canEdit) return;
     setError("");
     const name = editingCategoryName.trim();
     const image = editingCategoryImage.trim();
@@ -222,6 +240,7 @@ export default function FarmerDashboard() {
   };
 
   const handleRemoveCategory = async (categoryId: string) => {
+    if (!canEdit) return;
     setError("");
     const removed = categories.find((c) => c.id === categoryId);
     try {
@@ -243,6 +262,7 @@ export default function FarmerDashboard() {
   };
 
   const handleProductSubmit = async (e: React.FormEvent) => {
+    if (!canEdit) return;
     e.preventDefault();
     setError("");
     const price = parseFloat(productPrice);
@@ -322,6 +342,7 @@ export default function FarmerDashboard() {
   };
 
   const handleRemove = async (productId: string) => {
+    if (!canEdit) return;
     try {
       await api.products.remove(productId);
       setProducts((prev) => prev.filter((p) => p.id !== productId));
@@ -332,6 +353,12 @@ export default function FarmerDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      {subscription && (
+        <div className="mb-6">
+          <FarmerSubscriptionBanner subscription={subscription} />
+        </div>
+      )}
+
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl font-bold text-harvest-green">

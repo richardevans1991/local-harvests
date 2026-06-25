@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { getDefaultCategoryImage } from "../src/lib/category-images";
 import { DEMO_FARMERS, SAMPLE_FARMS, SAMPLE_PRODUCTS } from "../src/lib/sample-data";
 
 const prisma = new PrismaClient();
@@ -13,6 +14,8 @@ async function main() {
   await prisma.user.deleteMany();
 
   const passwordHash = await bcrypt.hash("farmer123", 10);
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 30);
 
   for (const farmer of DEMO_FARMERS) {
     await prisma.user.create({
@@ -22,6 +25,9 @@ async function main() {
         passwordHash,
         name: farmer.name,
         role: farmer.role,
+        subscriptionTier: "starter",
+        subscriptionStatus: "trialing",
+        trialEndsAt,
       },
     });
   }
@@ -64,7 +70,7 @@ async function main() {
   );
   for (const { farmId, name } of categoryPairs) {
     await prisma.farmCategory.create({
-      data: { farmId, name },
+      data: { farmId, name, image: getDefaultCategoryImage(name) },
     });
   }
 

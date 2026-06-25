@@ -46,13 +46,23 @@ export default function Header() {
 
           {currentUser ? (
             <>
-              {currentUser.role === "farmer" && currentUser.farmId && (
-                <Link
-                  href="/farmer/dashboard"
-                  className="font-medium text-harvest-brown hover:text-harvest-green"
-                >
-                  Dashboard
-                </Link>
+              {currentUser.role === "farmer" && (
+                <>
+                  <Link
+                    href="/farmer/plans"
+                    className="hidden font-medium text-harvest-brown hover:text-harvest-green sm:inline"
+                  >
+                    Plans
+                  </Link>
+                  {currentUser.farmId && (
+                    <Link
+                      href="/farmer/dashboard"
+                      className="font-medium text-harvest-brown hover:text-harvest-green"
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                </>
               )}
               <button
                 onClick={() => logout()}

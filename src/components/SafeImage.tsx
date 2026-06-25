@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
-import { normalizeImageUrl } from "@/lib/image-utils";
+import { useEffect, useState } from "react";
+import { FALLBACK_IMAGE, normalizeImageUrl } from "@/lib/image-utils";
 
 interface SafeImageProps {
   src: string;
@@ -22,7 +25,15 @@ export default function SafeImage({
   sizes,
   priority,
 }: SafeImageProps) {
-  const safeSrc = normalizeImageUrl(src);
+  const [safeSrc, setSafeSrc] = useState(() => normalizeImageUrl(src));
+
+  useEffect(() => {
+    setSafeSrc(normalizeImageUrl(src));
+  }, [src]);
+
+  const handleError = () => {
+    setSafeSrc((current) => (current === FALLBACK_IMAGE ? current : FALLBACK_IMAGE));
+  };
 
   if (fill) {
     return (
@@ -33,6 +44,7 @@ export default function SafeImage({
         className={className}
         sizes={sizes}
         priority={priority}
+        onError={handleError}
       />
     );
   }
@@ -46,6 +58,7 @@ export default function SafeImage({
       className={className}
       sizes={sizes}
       priority={priority}
+      onError={handleError}
     />
   );
 }

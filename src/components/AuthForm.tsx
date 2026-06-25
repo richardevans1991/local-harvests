@@ -49,7 +49,9 @@ export default function AuthForm({ mode, role }: AuthFormProps) {
       return;
     }
 
-    router.push(isFarmer ? "/farmer/dashboard" : "/");
+    router.push(
+      isFarmer ? (mode === "register" ? "/farmer/plans" : "/farmer/dashboard") : "/"
+    );
   };
 
   return (

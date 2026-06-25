@@ -1,4 +1,4 @@
-const FALLBACK_IMAGE =
+export const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=300&fit=crop";
 
 export function isValidImageUrl(url: string): boolean {

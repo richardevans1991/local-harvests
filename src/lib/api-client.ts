@@ -1,3 +1,4 @@
+import type { FarmerSubscriptionView } from "@/lib/farmer-subscription";
 import type { Farm, FarmCategory, FulfillmentMethod, Product, UserRole } from "@/types";
 
 export interface PublicUser {
@@ -86,6 +87,21 @@ export const api = {
       }),
     remove: (id: string) =>
       request<{ success: boolean }>(`/api/products/${id}`, { method: "DELETE" }),
+  },
+  farmer: {
+    subscription: {
+      get: () => request<{ subscription: FarmerSubscriptionView }>("/api/farmer/subscription"),
+      start: (tier: string) =>
+        request<{ subscription: FarmerSubscriptionView }>("/api/farmer/subscription/start", {
+          method: "POST",
+          body: JSON.stringify({ tier }),
+        }),
+      checkout: () =>
+        request<{ url: string }>("/api/farmer/subscription/checkout", {
+          method: "POST",
+          body: JSON.stringify({}),
+        }),
+    },
   },
   checkout: {
     fulfillmentOptions: (farmIds: string[]) =>

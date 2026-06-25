@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { validateFulfillmentChoice, type FulfillmentMethod } from "@/lib/fulfillment";
+import { calculateCheckoutFees } from "@/lib/order-fees";
 import { prisma } from "@/lib/prisma";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Delivery address is required." }, { status: 400 });
     }
 
-    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const { subtotal, platformFee, farmerTotal } = await calculateCheckoutFees(items);
     const user = await getSessionUser();
 
     const order = await prisma.order.create({
@@ -68,12 +69,15 @@ export async function POST(request: Request) {
         deliveryAddress:
           fulfillmentMethod === "delivery" ? deliveryAddress?.trim() ?? null : null,
         notes: notes || null,
-        total,
+        total: subtotal,
+        platformFee,
+        farmerTotal,
         status: "pending",
         userId: user?.id,
         items: {
           create: items.map((item) => ({
             productId: item.productId,
+            farmId: item.farmId,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
@@ -95,7 +99,7 @@ export async function POST(request: Request) {
       customer_email: email,
       line_items: items.map((item) => ({
         price_data: {
-          currency: "usd",
+          currency: "gbp",
           product_data: {
             name: item.name,
             images: item.image ? [item.image] : undefined,

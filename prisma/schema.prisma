@@ -8,13 +8,18 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         String
-  farm         Farm?
-  createdAt    DateTime @default(now())
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  passwordHash         String
+  name                 String
+  role                 String
+  farm                 Farm?
+  createdAt            DateTime  @default(now())
+  subscriptionTier     String?
+  subscriptionStatus   String    @default("none")
+  trialEndsAt          DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
 }
 
 model Farm {
@@ -66,6 +71,8 @@ model Order {
   deliveryAddress   String?
   notes             String?
   total             Float
+  platformFee       Float       @default(0)
+  farmerTotal       Float       @default(0)
   status            String      @default("pending")
   stripeSessionId   String?     @unique
   userId            String?
@@ -78,6 +85,7 @@ model OrderItem {
   orderId   String
   order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
+  farmId    String
   name      String
   price     Float
   quantity  Int
