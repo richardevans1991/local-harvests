@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { markOrderPaid } from "@/lib/stripe-handlers";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 
 export async function GET(request: Request) {
@@ -26,10 +26,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 
-    const order = await prisma.order.update({
-      where: { id: orderId },
-      data: { status: "paid", stripeSessionId: sessionId },
-    });
+    const order = await markOrderPaid(orderId, sessionId);
 
     return NextResponse.json({
       order: {

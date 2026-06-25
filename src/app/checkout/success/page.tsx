@@ -86,7 +86,7 @@ function SuccessContent() {
             Order Confirmed!
           </h1>
           <p className="mt-2 text-harvest-brown">
-            Thank you, {order.customerName}! Your order totaling ${order.total.toFixed(2)} is
+            Thank you, {order.customerName}! Your order totaling £{order.total.toFixed(2)} is
             confirmed for {fulfillmentText}.
             {order.email && (
               <>

@@ -4,15 +4,27 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Header from "@/components/Header";
+import { api } from "@/lib/api-client";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => setReady(true), 800);
-    return () => clearTimeout(timer);
+    if (!sessionId) {
+      setReady(true);
+      return;
+    }
+
+    api.farmer.subscription
+      .verify(sessionId)
+      .then(() => setReady(true))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Verification failed.");
+        setReady(true);
+      });
   }, [sessionId]);
 
   return (
@@ -23,9 +35,11 @@ function SuccessContent() {
           Billing set up
         </h1>
         <p className="mt-3 text-harvest-brown/85">
-          {ready
-            ? "Your subscription is being confirmed. You can manage your shop from the dashboard."
-            : "Confirming your subscription..."}
+          {!ready
+            ? "Confirming your subscription..."
+            : error
+              ? error
+              : "Your subscription is active. You can manage your shop from the dashboard."}
         </p>
         <Link
           href="/farmer/dashboard"

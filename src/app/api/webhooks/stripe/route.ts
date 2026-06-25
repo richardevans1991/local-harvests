@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import {
+  handleCheckoutSessionCompleted,
+  syncSubscriptionStatus,
+} from "@/lib/stripe-handlers";
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -25,49 +28,15 @@ export async function POST(request: Request) {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.mode !== "subscription" || !session.subscription) break;
-
-        const userId = session.metadata?.userId;
-        if (!userId) break;
-
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            stripeSubscriptionId: String(session.subscription),
-            subscriptionStatus: "active",
-          },
-        });
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(
+          event.data.object as Stripe.Checkout.Session
+        );
         break;
-      }
       case "customer.subscription.updated":
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const user = await prisma.user.findFirst({
-          where: { stripeSubscriptionId: subscription.id },
-        });
-        if (!user) break;
-
-        const statusMap: Record<string, string> = {
-          active: "active",
-          trialing: "trialing",
-          past_due: "past_due",
-          canceled: "canceled",
-          unpaid: "past_due",
-          incomplete: "past_due",
-          incomplete_expired: "canceled",
-          paused: "past_due",
-        };
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            subscriptionStatus: statusMap[subscription.status] ?? "past_due",
-          },
-        });
+      case "customer.subscription.deleted":
+        await syncSubscriptionStatus(event.data.object as Stripe.Subscription);
         break;
-      }
       default:
         break;
     }

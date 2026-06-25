@@ -89,6 +89,31 @@ export const api = {
       request<{ success: boolean }>(`/api/products/${id}`, { method: "DELETE" }),
   },
   farmer: {
+    earnings: {
+      get: () =>
+        request<{
+          summary: {
+            totalOwed: number;
+            totalSales: number;
+            platformFees: number;
+            paidOrderCount: number;
+            commissionRate: number;
+            onTrial: boolean;
+          };
+          orders: {
+            orderId: string;
+            customerName: string;
+            createdAt: string;
+            pickupDate: string;
+            fulfillmentMethod: string;
+            status: string;
+            salesTotal: number;
+            platformFee: number;
+            farmerEarnings: number;
+            itemCount: number;
+          }[];
+        }>("/api/farmer/earnings"),
+    },
     subscription: {
       get: () => request<{ subscription: FarmerSubscriptionView }>("/api/farmer/subscription"),
       start: (tier: string) =>
@@ -101,6 +126,10 @@ export const api = {
           method: "POST",
           body: JSON.stringify({}),
         }),
+      verify: (sessionId: string) =>
+        request<{ subscription: { status: string; tier: string | null } }>(
+          `/api/farmer/subscription/verify?session_id=${encodeURIComponent(sessionId)}`
+        ),
     },
   },
   checkout: {
