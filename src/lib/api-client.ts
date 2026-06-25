@@ -89,6 +89,45 @@ export const api = {
       request<{ success: boolean }>(`/api/products/${id}`, { method: "DELETE" }),
   },
   farmer: {
+    orders: {
+      list: () =>
+        request<{
+          orders: {
+            orderId: string;
+            status: string;
+            customerName: string;
+            email: string;
+            phone: string;
+            pickupDate: string;
+            fulfillmentMethod: string;
+            deliveryAddress: string | null;
+            notes: string | null;
+            createdAt: string;
+            farmSubtotal: number;
+            items: {
+              id: string;
+              name: string;
+              price: number;
+              quantity: number;
+              image: string;
+            }[];
+          }[];
+          activeCount: number;
+        }>("/api/farmer/orders"),
+      updateStatus: (orderId: string, status: string) =>
+        request<{
+          order: {
+            id: string;
+            status: string;
+            customerName: string;
+            pickupDate: string;
+            fulfillmentMethod: string;
+          };
+        }>(`/api/farmer/orders/${orderId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status }),
+        }),
+    },
     earnings: {
       get: () =>
         request<{

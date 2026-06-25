@@ -1,6 +1,7 @@
 "use client";
 
 import FarmerEarningsPanel from "@/components/FarmerEarningsPanel";
+import FarmerOrdersPanel from "@/components/FarmerOrdersPanel";
 import FarmerSubscriptionBanner from "@/components/FarmerSubscriptionBanner";
 import SafeImage from "@/components/SafeImage";
 import type { FarmerSubscriptionView } from "@/lib/farmer-subscription";
@@ -359,6 +360,8 @@ export default function FarmerDashboard() {
           <FarmerSubscriptionBanner subscription={subscription} />
         </div>
       )}
+
+      <FarmerOrdersPanel />
 
       <FarmerEarningsPanel />
 

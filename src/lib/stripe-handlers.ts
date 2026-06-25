@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { notifyOrderParties } from "@/lib/order-notifications";
 import { prisma } from "@/lib/prisma";
 
 export async function markOrderPaid(orderId: string, sessionId: string) {
@@ -15,10 +16,16 @@ export async function markOrderPaid(orderId: string, sessionId: string) {
     return prisma.order.findUniqueOrThrow({ where: { id: orderId } });
   }
 
-  return prisma.order.update({
+  const order = await prisma.order.update({
     where: { id: orderId },
     data: { status: "paid", stripeSessionId: sessionId },
   });
+
+  void notifyOrderParties(orderId).catch((err) =>
+    console.error("Order notification failed:", err)
+  );
+
+  return order;
 }
 
 export async function activateFarmerSubscription(
