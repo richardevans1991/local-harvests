@@ -45,10 +45,10 @@ export default function FarmDirectory() {
 
       <div className="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-serif text-2xl font-bold text-harvest-green">
+          <h2 className="font-serif text-2xl font-bold text-harvest-cream drop-shadow-sm">
             Local Farm Shops
           </h2>
-          <span className="text-sm text-harvest-brown/70">
+          <span className="home-glass rounded-full px-3 py-1 text-sm text-harvest-brown/80">
             {loading
               ? "Loading..."
               : `${filteredFarms.length} farm${filteredFarms.length !== 1 ? "s" : ""} found`}
@@ -60,12 +60,12 @@ export default function FarmDirectory() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-72 animate-pulse rounded-2xl bg-harvest-tan/40"
+                className="home-glass h-72 animate-pulse rounded-2xl"
               />
             ))}
           </div>
         ) : filteredFarms.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-harvest-tan bg-white p-12 text-center">
+          <div className="home-glass rounded-2xl border border-dashed border-harvest-tan/60 p-12 text-center">
             <p className="text-harvest-brown">No farms match your search.</p>
           </div>
         ) : (

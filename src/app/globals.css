@@ -32,6 +32,21 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+.home-glass {
+  border: 1px solid rgb(255 255 255 / 0.45);
+  background: rgb(255 252 247 / 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.home-scene .farm-card {
+  border: 1px solid rgb(255 255 255 / 0.5);
+  background: rgb(255 252 247 / 0.84);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgb(30 20 10 / 0.14);
+}
+
 .farm-card {
   border: 1px solid rgb(220 201 168 / 0.7);
   border-radius: 1rem;
