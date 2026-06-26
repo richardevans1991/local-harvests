@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { Farm, FarmCategory, Product } from "@/types";
 import { api } from "@/lib/api-client";
+import { formatMoney } from "@/lib/format-money";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function FarmerDashboard() {
@@ -486,7 +487,7 @@ export default function FarmerDashboard() {
               multiline
               required
             />
-            <Field label="Price ($)" value={productPrice} onChange={setProductPrice} type="number" required />
+            <Field label="Price (£)" value={productPrice} onChange={setProductPrice} type="number" required />
             <Field
               label="Image URL"
               value={productImage}
@@ -700,7 +701,7 @@ export default function FarmerDashboard() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-harvest-green">{product.name}</p>
                   <p className="text-sm text-harvest-brown/80">
-                    {product.category} · ${product.price.toFixed(2)}
+                    {product.category} · {formatMoney(product.price)}
                   </p>
                 </div>
                 <div className="flex gap-2">

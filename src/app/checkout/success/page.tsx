@@ -3,7 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import Header from "@/components/Header";
+import SiteFooter from "@/components/SiteFooter";
 import { api } from "@/lib/api-client";
+import { formatMoney } from "@/lib/format-money";
 import { useCartStore } from "@/stores/cart-store";
 import type { FulfillmentMethod } from "@/types";
 
@@ -86,7 +88,7 @@ function SuccessContent() {
             Order Confirmed!
           </h1>
           <p className="mt-2 text-harvest-brown">
-            Thank you, {order.customerName}! Your order totaling £{order.total.toFixed(2)} is
+            Thank you, {order.customerName}! Your order totaling {formatMoney(order.total)} is
             confirmed for {fulfillmentText}.
             {order.email && (
               <>
@@ -120,6 +122,7 @@ export default function CheckoutSuccessPage() {
       >
         <SuccessContent />
       </Suspense>
+      <SiteFooter />
     </>
   );
 }

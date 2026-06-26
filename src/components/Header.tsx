@@ -68,6 +68,18 @@ export default function Header() {
             Farms
           </Link>
 
+          {!currentUser && (
+            <Link href="/for-farmers" className={`hidden md:inline ${navLinkClass}`}>
+              For farmers
+            </Link>
+          )}
+
+          {currentUser?.role === "customer" && (
+            <Link href="/orders" className={navLinkClass}>
+              My orders
+            </Link>
+          )}
+
           <Link href="/cart" className={cartClass}>
             🛒 Cart
             {itemCount > 0 && (

@@ -1,15 +1,23 @@
 "use client";
 
 import SafeImage from "@/components/SafeImage";
+import SiteFooter from "@/components/SiteFooter";
 import Link from "next/link";
 import Header from "@/components/Header";
+import { formatMoney } from "@/lib/format-money";
 import { selectCartSubtotal, useCartStore } from "@/stores/cart-store";
+import { useMemo } from "react";
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const total = useCartStore(selectCartSubtotal);
+
+  const farmCount = useMemo(
+    () => new Set(items.map((item) => item.farmId).filter(Boolean)).size,
+    [items]
+  );
 
   return (
     <>
@@ -32,7 +40,15 @@ export default function CartPage() {
             </div>
           ) : (
             <div className="mt-8 grid gap-8 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-4">
+              <div className="space-y-4 lg:col-span-2">
+                {farmCount > 1 && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Your cart includes items from {farmCount} farms. Checkout uses one
+                    pickup or delivery date for the whole order — consider ordering from
+                    one farm at a time for simpler collection.
+                  </div>
+                )}
+
                 {items.map((item) => (
                   <div
                     key={item.productId}
@@ -51,7 +67,7 @@ export default function CartPage() {
                       <div>
                         <h3 className="font-medium text-harvest-green">{item.name}</h3>
                         <p className="text-sm text-harvest-brown">
-                          ${item.price.toFixed(2)} each
+                          {formatMoney(item.price)} each
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -83,7 +99,7 @@ export default function CartPage() {
                       </div>
                     </div>
                     <p className="font-semibold text-harvest-brown">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {formatMoney(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -96,7 +112,7 @@ export default function CartPage() {
                 <div className="mt-4 space-y-2 text-sm text-harvest-brown">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatMoney(total)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Pickup</span>
@@ -105,7 +121,7 @@ export default function CartPage() {
                 </div>
                 <div className="mt-4 flex justify-between border-t border-harvest-tan/40 pt-4 font-semibold text-harvest-brown">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{formatMoney(total)}</span>
                 </div>
                 <Link
                   href="/checkout"
@@ -118,6 +134,7 @@ export default function CartPage() {
           )}
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

@@ -2,6 +2,8 @@ import FarmDirectory from "@/components/FarmDirectory";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import HomeBackdrop from "@/components/HomeBackdrop";
+import HowItWorks from "@/components/HowItWorks";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function HomePage() {
   return (
@@ -11,10 +13,9 @@ export default function HomePage() {
       <main className="home-scene relative z-10 flex-1">
         <Hero />
         <FarmDirectory />
+        <HowItWorks variant="home" />
       </main>
-      <footer className="home-glass relative z-10 border-t border-harvest-tan/30 py-8 text-center text-sm text-harvest-cream/90 shadow-[0_-4px_24px_rgb(0_0_0/0.08)]">
-        <p>© {new Date().getFullYear()} Local Harvest — Fresh food from farms near you.</p>
-      </footer>
+      <SiteFooter variant="home" />
     </>
   );
 }

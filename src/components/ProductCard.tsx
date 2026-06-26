@@ -1,6 +1,7 @@
 "use client";
 
 import SafeImage from "@/components/SafeImage";
+import { formatMoney } from "@/lib/format-money";
 import { useState } from "react";
 import type { Product } from "@/types";
 import { useCartStore } from "@/stores/cart-store";
@@ -48,7 +49,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
         <div className="mt-4 flex items-center justify-between gap-2">
           <span className="font-serif text-xl font-bold text-harvest-rust">
-            ${product.price.toFixed(2)}
+            {formatMoney(product.price)}
           </span>
           <button
             type="button"

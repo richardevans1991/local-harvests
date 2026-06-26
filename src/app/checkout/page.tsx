@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
+import SiteFooter from "@/components/SiteFooter";
 import { api } from "@/lib/api-client";
+import { formatMoney } from "@/lib/format-money";
+import { useAuthStore } from "@/stores/auth-store";
 import { selectCartSubtotal, useCartStore } from "@/stores/cart-store";
 import type { FulfillmentMethod } from "@/types";
 
@@ -18,6 +21,10 @@ function CheckoutContent() {
     () => Array.from(new Set(items.map((item) => item.farmId).filter(Boolean))),
     [items]
   );
+  const farmCount = farmIds.length;
+
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const authInitialized = useAuthStore((s) => s.initialized);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,6 +46,12 @@ function CheckoutContent() {
   useEffect(() => {
     api.checkout.stripeEnabled().then(({ enabled }) => setStripeEnabled(enabled));
   }, []);
+
+  useEffect(() => {
+    if (!authInitialized || !currentUser || currentUser.role !== "customer") return;
+    setName((value) => value || currentUser.name);
+    setEmail((value) => value || currentUser.email);
+  }, [authInitialized, currentUser]);
 
   useEffect(() => {
     if (!farmIds.length) {
@@ -166,6 +179,14 @@ function CheckoutContent() {
           </p>
         )}
 
+        {farmCount > 1 && (
+          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Your cart includes items from {farmCount} farms. One pickup or delivery date
+            applies to the whole order — consider ordering from one farm at a time for
+            simpler collection.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
             {(optionsLoading || pickupAvailable || deliveryAvailable || optionsError) && (
@@ -283,7 +304,7 @@ function CheckoutContent() {
                       {item.name} × {item.quantity}
                     </span>
                     <span className="font-medium text-harvest-brown">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {formatMoney(item.price * item.quantity)}
                     </span>
                   </li>
                 ))}
@@ -302,7 +323,7 @@ function CheckoutContent() {
             </p>
             <div className="mt-4 flex justify-between border-t border-harvest-tan/40 pt-4 font-semibold text-harvest-brown">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatMoney(total)}</span>
             </div>
 
             {error && (
@@ -348,6 +369,7 @@ export default function CheckoutPage() {
       >
         <CheckoutContent />
       </Suspense>
+      <SiteFooter />
     </>
   );
 }

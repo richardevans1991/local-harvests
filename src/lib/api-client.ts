@@ -48,6 +48,30 @@ export const api = {
       }),
     logout: () => request<{ success: boolean }>("/api/auth/logout", { method: "POST" }),
   },
+  customer: {
+    orders: {
+      list: () =>
+        request<{
+          orders: {
+            orderId: string;
+            status: string;
+            pickupDate: string;
+            fulfillmentMethod: string;
+            deliveryAddress: string | null;
+            total: number;
+            createdAt: string;
+            itemCount: number;
+            items: {
+              id: string;
+              name: string;
+              quantity: number;
+              price: number;
+              farmId: string;
+            }[];
+          }[];
+        }>("/api/customer/orders"),
+    },
+  },
   farms: {
     list: () => request<{ farms: Farm[] }>("/api/farms"),
     get: (id: string) =>
