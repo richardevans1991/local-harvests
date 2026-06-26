@@ -9,14 +9,16 @@ export default function Hero() {
       />
 
       <div className="relative mx-auto max-w-4xl text-center">
-        <Image
-          src="/logos/logo.jpg"
-          alt="Local Harvest"
-          width={480}
-          height={140}
-          className="mx-auto h-20 w-auto drop-shadow-[0_4px_24px_rgb(0_0_0/0.35)] sm:h-28 md:h-36"
-          priority
-        />
+        <div className="hero-logo-wrap mx-auto w-fit">
+          <Image
+            src="/logos/logo.jpg"
+            alt="Local Harvest"
+            width={480}
+            height={140}
+            className="hero-logo-blend h-20 w-auto sm:h-28 md:h-36"
+            priority
+          />
+        </div>
 
         <p className="hero-eyebrow mt-8 inline-block rounded-full border border-harvest-cream/35 bg-harvest-cream/15 px-4 py-1.5 text-sm font-semibold uppercase tracking-widest text-harvest-cream backdrop-blur-sm">
           🌾 Your neighborhood farm marketplace

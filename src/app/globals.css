@@ -32,6 +32,16 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+.hero-logo-wrap {
+  filter: drop-shadow(0 4px 22px rgb(10 6 4 / 0.5))
+    drop-shadow(0 2px 8px rgb(10 6 4 / 0.35));
+}
+
+/* Cream background in logo.jpg blends away; green artwork stays visible */
+.hero-logo-blend {
+  mix-blend-mode: darken;
+}
+
 .hero-heading {
   text-shadow:
     0 2px 18px rgb(30 20 10 / 0.5),
