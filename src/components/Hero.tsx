@@ -1,4 +1,4 @@
-import Image from "next/image";
+import HeroLogo from "@/components/HeroLogo";
 
 export default function Hero() {
   return (
@@ -9,16 +9,7 @@ export default function Hero() {
       />
 
       <div className="relative mx-auto max-w-4xl text-center">
-        <div className="hero-logo-wrap mx-auto w-fit">
-          <Image
-            src="/logos/logo.jpg"
-            alt="Local Harvest"
-            width={480}
-            height={140}
-            className="hero-logo-blend h-20 w-auto sm:h-28 md:h-36"
-            priority
-          />
-        </div>
+        <HeroLogo />
 
         <p className="hero-eyebrow mt-8 inline-block rounded-full border border-harvest-cream/35 bg-harvest-cream/15 px-4 py-1.5 text-sm font-semibold uppercase tracking-widest text-harvest-cream backdrop-blur-sm">
           🌾 Your neighborhood farm marketplace
