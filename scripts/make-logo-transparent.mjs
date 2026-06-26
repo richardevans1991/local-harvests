@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const input = path.join(__dirname, "../public/logos/logo.jpg");
 const output = path.join(__dirname, "../public/logos/logo-transparent.png");
 const heroOutput = path.join(__dirname, "../public/logos/logo-hero-light.png");
+const iconLightOutput = path.join(__dirname, "../public/logos/logo-icon-light.png");
+const iconMarkOutput = path.join(__dirname, "../public/logos/logo-icon-mark.png");
+const ICON_CROP_RATIO = 0.44;
 
 function isBackground(r, g, b) {
   const brightness = (r + g + b) / 3;
@@ -62,7 +65,21 @@ toHeroLight(heroData, channels);
 await sharp(data, { raw: { width, height, channels } }).png().toFile(output);
 await sharp(heroData, { raw: { width, height, channels } }).png().toFile(heroOutput);
 
+async function writeIconMark(sourcePath, destPath) {
+  const cropWidth = Math.round(width * ICON_CROP_RATIO);
+  const cropped = await sharp(sourcePath)
+    .extract({ left: 0, top: 0, width: cropWidth, height })
+    .toBuffer();
+
+  await sharp(cropped).trim().png().toFile(destPath);
+}
+
+await writeIconMark(heroOutput, iconLightOutput);
+await writeIconMark(output, iconMarkOutput);
+
 const total = width * height;
 console.log(`Wrote ${output} (${width}x${height})`);
 console.log(`Wrote ${heroOutput} (${width}x${height})`);
+console.log(`Wrote ${iconLightOutput}`);
+console.log(`Wrote ${iconMarkOutput}`);
 console.log(`Transparent pixels: ${transparent}/${total} (${((transparent / total) * 100).toFixed(1)}%)`);

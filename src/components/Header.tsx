@@ -40,14 +40,14 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-3.5">
         <Link href="/" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
           <Image
-            src="/logos/logo-icon.svg"
+            src={isHome ? "/logos/logo-icon-light.png" : "/logos/logo-icon-mark.png"}
             alt=""
-            width={56}
-            height={56}
+            width={140}
+            height={140}
             className={
               isHome
-                ? "h-11 w-11 drop-shadow-sm sm:h-12 sm:w-12"
-                : "h-10 w-10 sm:h-11 sm:w-11"
+                ? "h-11 w-auto drop-shadow-sm sm:h-12"
+                : "h-10 w-auto sm:h-11"
             }
             priority
             aria-hidden
