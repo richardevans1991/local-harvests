@@ -3,6 +3,8 @@ import { getSessionUser } from "@/lib/auth";
 import {
   farmerShareFromLine,
   isEarningOrderStatus,
+  isPayoutEligibleStatus,
+  isPendingPayoutStatus,
 } from "@/lib/farmer-earnings";
 import { getCommissionRate, isTrialActive } from "@/lib/farmer-subscription";
 import { prisma } from "@/lib/prisma";
@@ -59,7 +61,8 @@ export async function GET() {
       }
     >();
 
-    let totalOwed = 0;
+    let availableForPayout = 0;
+    let pendingPayout = 0;
     let totalSales = 0;
     let totalPlatformFees = 0;
     let paidOrderCount = 0;
@@ -95,7 +98,12 @@ export async function GET() {
       }
 
       if (isEarningOrderStatus(item.order.status)) {
-        totalOwed = Math.round((totalOwed + farmerEarnings) * 100) / 100;
+        if (isPayoutEligibleStatus(item.order.status)) {
+          availableForPayout =
+            Math.round((availableForPayout + farmerEarnings) * 100) / 100;
+        } else if (isPendingPayoutStatus(item.order.status)) {
+          pendingPayout = Math.round((pendingPayout + farmerEarnings) * 100) / 100;
+        }
         totalSales = Math.round((totalSales + lineTotal) * 100) / 100;
         totalPlatformFees = Math.round((totalPlatformFees + platformFee) * 100) / 100;
       }
@@ -108,7 +116,9 @@ export async function GET() {
 
     return NextResponse.json({
       summary: {
-        totalOwed,
+        availableForPayout,
+        pendingPayout,
+        totalOwed: availableForPayout,
         totalSales,
         platformFees: totalPlatformFees,
         paidOrderCount,

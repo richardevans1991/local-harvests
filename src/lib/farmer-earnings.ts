@@ -1,6 +1,8 @@
 import { COMMISSION_RATE } from "@/lib/farmer-plans";
 
 const NON_EARNING_STATUSES = new Set(["pending", "cancelled"]);
+const PAYOUT_ELIGIBLE_STATUSES = new Set(["completed"]);
+const PENDING_PAYOUT_STATUSES = new Set(["paid", "confirmed", "ready"]);
 
 export function commissionRateForOrder(
   trialEndsAt: Date | null,
@@ -25,4 +27,12 @@ export function farmerShareFromLine(
 
 export function isEarningOrderStatus(status: string) {
   return !NON_EARNING_STATUSES.has(status);
+}
+
+export function isPayoutEligibleStatus(status: string) {
+  return PAYOUT_ELIGIBLE_STATUSES.has(status);
+}
+
+export function isPendingPayoutStatus(status: string) {
+  return PENDING_PAYOUT_STATUSES.has(status);
 }

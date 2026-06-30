@@ -103,6 +103,13 @@ async function main() {
     return;
   }
 
+  if (process.env.NODE_ENV === "production" && process.env.SEED_FORCE !== "true") {
+    console.log(
+      "Production database is empty — skipping demo seed. Register a real farm, or set SEED_FORCE=true to load demos."
+    );
+    return;
+  }
+
   await seedDemoData();
 }
 

@@ -53,6 +53,28 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
+      <LegalSection title="Farmer payouts">
+        <p>
+          When customers pay online through Stripe, funds are collected by Local Harvest. We pay
+          farm shops their share (order total minus the marketplace commission) by bank transfer.
+        </p>
+        <p>
+          Payouts are made <strong>weekly</strong> for orders you have marked as{" "}
+          <strong>Completed</strong> in your dashboard, after a short processing window (typically
+          up to 7 days from completion) to allow for refunds or payment disputes. Orders still
+          being prepared, ready for pickup, or awaiting delivery are not paid out until completed.
+        </p>
+        <p>
+          Stripe card processing fees are deducted before your share is calculated. During your free
+          trial, no {COMMISSION_PERCENT}% commission applies; from month two the commission described
+          above is taken from each eligible order.
+        </p>
+        <p>
+          For orders where customers pay on pickup or delivery (when Stripe is not used), you
+          collect payment directly — Local Harvest does not hold or transfer those funds.
+        </p>
+      </LegalSection>
+
       <LegalSection title="Farmer accounts and subscriptions">
         <p>
           Farmers can register for a {TRIAL_DAYS}-day free trial with no payment card required at

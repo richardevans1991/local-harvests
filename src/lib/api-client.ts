@@ -215,6 +215,8 @@ export const api = {
       get: () =>
         request<{
           summary: {
+            availableForPayout: number;
+            pendingPayout: number;
             totalOwed: number;
             totalSales: number;
             platformFees: number;

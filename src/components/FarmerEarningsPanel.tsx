@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api-client";
 
 interface FarmerEarningsSummary {
-  totalOwed: number;
+  availableForPayout: number;
+  pendingPayout: number;
   totalSales: number;
   platformFees: number;
   paidOrderCount: number;
@@ -86,10 +87,15 @@ export default function FarmerEarningsPanel() {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-harvest-brown/70">Total owed to you</p>
+          <p className="text-sm font-medium text-harvest-brown/70">Available for payout</p>
           <p className="font-serif text-3xl font-bold text-harvest-green">
-            {formatMoney(summary.totalOwed)}
+            {formatMoney(summary.availableForPayout)}
           </p>
+          {summary.pendingPayout > 0 && (
+            <p className="mt-1 text-xs text-harvest-brown/65">
+              {formatMoney(summary.pendingPayout)} pending fulfilment
+            </p>
+          )}
         </div>
       </div>
 
@@ -121,8 +127,9 @@ export default function FarmerEarningsPanel() {
       </div>
 
       <p className="mt-4 text-xs text-harvest-brown/65">
-        Payouts are sent to your bank by Local Harvest. This balance shows what you’re owed from
-        completed orders.
+        Payouts are sent weekly by bank transfer for orders marked <strong>Completed</strong>, after
+        a short processing window. Sales still being prepared or awaiting pickup/delivery show as
+        pending fulfilment until you mark them complete.
       </p>
 
       {orders.length > 0 ? (
