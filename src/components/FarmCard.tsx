@@ -33,6 +33,11 @@ export default function FarmCard({ farm }: FarmCardProps) {
         <p className="mb-2 text-sm leading-relaxed text-harvest-brown/85">
           {farm.shortDescription}
         </p>
+        {farm.shopOpen === false && (
+          <p className="mb-2 text-xs font-semibold text-harvest-brown/70">
+            Showcase — orders closed
+          </p>
+        )}
         <p className="text-xs font-semibold text-harvest-rust">📍 {farm.location}</p>
       </div>
     </Link>

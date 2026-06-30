@@ -39,6 +39,7 @@ export interface Farm {
   ownerId: string;
   offersPickup: boolean;
   offersDelivery: boolean;
+  shopOpen: boolean;
   deliveryNotes?: string | null;
 }
 

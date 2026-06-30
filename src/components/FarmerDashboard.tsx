@@ -34,6 +34,7 @@ export default function FarmerDashboard() {
   const [farmImage, setFarmImage] = useState("");
   const [offersPickup, setOffersPickup] = useState(true);
   const [offersDelivery, setOffersDelivery] = useState(false);
+  const [shopOpen, setShopOpen] = useState(true);
   const [deliveryNotes, setDeliveryNotes] = useState("");
 
   const [productName, setProductName] = useState("");
@@ -78,6 +79,7 @@ export default function FarmerDashboard() {
     setFarmImage(farm.image);
     setOffersPickup(farm.offersPickup);
     setOffersDelivery(farm.offersDelivery);
+    setShopOpen(farm.shopOpen !== false);
     setDeliveryNotes(farm.deliveryNotes ?? "");
   };
 
@@ -142,6 +144,7 @@ export default function FarmerDashboard() {
         image: farmImage,
         offersPickup,
         offersDelivery,
+        shopOpen,
         deliveryNotes: offersDelivery ? deliveryNotes.trim() || null : null,
       });
       setFarm(updated);
@@ -412,6 +415,40 @@ export default function FarmerDashboard() {
               onChange={setFarmDescription}
               multiline
             />
+            <div className="rounded-xl border border-harvest-tan/60 bg-harvest-parchment/30 p-4">
+              <h3 className="text-sm font-semibold text-harvest-green">Shop status</h3>
+              <p className="mt-1 text-xs text-harvest-brown/80">
+                Close your shop to stay visible as a showcase — customers can browse but not
+                order. Open when you&apos;re ready to take real orders.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  disabled={!canEdit}
+                  onClick={() => setShopOpen(true)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    shopOpen
+                      ? "bg-harvest-green text-harvest-brown shadow-sm"
+                      : "border border-harvest-tan text-harvest-brown hover:border-harvest-green"
+                  }`}
+                >
+                  Open — taking orders
+                </button>
+                <button
+                  type="button"
+                  disabled={!canEdit}
+                  onClick={() => setShopOpen(false)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    !shopOpen
+                      ? "bg-harvest-wheat text-harvest-brown shadow-sm"
+                      : "border border-harvest-tan text-harvest-brown hover:border-harvest-green"
+                  }`}
+                >
+                  Closed — showcase only
+                </button>
+              </div>
+            </div>
+
             <ImageUploadField
               label="Farm card photo"
               value={farmImage}

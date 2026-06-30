@@ -8,13 +8,15 @@ import { useCartStore } from "@/stores/cart-store";
 
 interface ProductCardProps {
   product: Product;
+  shopOpen?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, shopOpen = true }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
+    if (!shopOpen) return;
     addItem({
       productId: product.id,
       farmId: product.farmId,
@@ -51,17 +53,23 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="font-serif text-xl font-bold text-harvest-rust">
             {formatMoney(product.price)}
           </span>
-          <button
-            type="button"
-            onClick={handleAdd}
-            className={`rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition ${
-              added
-                ? "bg-harvest-wheat text-harvest-brown"
-                : "bg-harvest-green text-harvest-brown hover:bg-harvest-green-dark hover:text-white"
-            }`}
-          >
-            {added ? "✓ Added!" : "Add to Cart"}
-          </button>
+          {shopOpen ? (
+            <button
+              type="button"
+              onClick={handleAdd}
+              className={`rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition ${
+                added
+                  ? "bg-harvest-wheat text-harvest-brown"
+                  : "bg-harvest-green text-harvest-brown hover:bg-harvest-green-dark hover:text-white"
+              }`}
+            >
+              {added ? "✓ Added!" : "Add to Cart"}
+            </button>
+          ) : (
+            <span className="rounded-full bg-harvest-tan/50 px-4 py-2 text-xs font-semibold text-harvest-brown/70">
+              Showcase only
+            </span>
+          )}
         </div>
       </div>
     </article>

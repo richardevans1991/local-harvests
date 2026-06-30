@@ -45,8 +45,22 @@ export async function POST(request: Request) {
     const farmIds = Array.from(new Set(items.map((item) => item.farmId)));
     const farms = await prisma.farm.findMany({
       where: { id: { in: farmIds } },
-      select: { offersPickup: true, offersDelivery: true },
+      select: { id: true, name: true, offersPickup: true, offersDelivery: true, shopOpen: true },
     });
+
+    const closedFarms = farms.filter((farm) => !farm.shopOpen);
+    if (closedFarms.length > 0) {
+      const names = closedFarms.map((farm) => farm.name).join(", ");
+      return NextResponse.json(
+        {
+          error:
+            closedFarms.length === 1
+              ? `${names} is not accepting orders right now — browse only.`
+              : `${names} are not accepting orders right now.`,
+        },
+        { status: 400 }
+      );
+    }
 
     const validationError = validateFulfillmentChoice(fulfillmentMethod, farms);
     if (validationError) {

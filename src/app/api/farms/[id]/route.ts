@@ -65,6 +65,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         distance: body.distance,
         offersPickup: body.offersPickup,
         offersDelivery: body.offersDelivery,
+        shopOpen: body.shopOpen,
         deliveryNotes: body.deliveryNotes,
       },
     });

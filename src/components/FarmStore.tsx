@@ -53,9 +53,15 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
           </h1>
           <p className="mt-2 max-w-2xl text-harvest-parchment/95">{farm.description}</p>
           <p className="mt-2 text-sm text-harvest-wheat">
-            📍 {farm.location} · {farm.distance} miles away
+            📍 {farm.location}
+            {farm.distance > 0 && ` · ${farm.distance} miles away`}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
+            {farm.shopOpen === false && (
+              <span className="rounded-full bg-harvest-wheat/95 px-3 py-1 text-xs font-semibold text-harvest-brown">
+                Showcase — orders closed
+              </span>
+            )}
             {farm.offersPickup && (
               <span className="rounded-full bg-harvest-green/90 px-3 py-1 text-xs font-semibold text-harvest-brown">
                 Click &amp; Collect
@@ -74,6 +80,13 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
       </div>
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {farm.shopOpen === false && (
+          <div className="mb-6 rounded-xl border border-harvest-wheat/80 bg-harvest-parchment/60 px-4 py-3 text-sm text-harvest-brown">
+            This farm shop is <strong>open for browsing only</strong> — customers can view
+            products but cannot place orders right now.
+          </div>
+        )}
+
         <div className="mb-6 flex flex-wrap gap-3">
           <CategoryChip
             label="All"
@@ -98,7 +111,11 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                shopOpen={farm.shopOpen !== false}
+              />
             ))}
           </div>
         )}

@@ -16,6 +16,7 @@ export const SAMPLE_FARMS: Farm[] = [
     ownerId: "user-farmer-green-meadow",
     offersPickup: true,
     offersDelivery: false,
+    shopOpen: true,
   },
   {
     id: "farm-oak-hill",
@@ -32,6 +33,7 @@ export const SAMPLE_FARMS: Farm[] = [
     ownerId: "user-farmer-oak-hill",
     offersPickup: true,
     offersDelivery: false,
+    shopOpen: true,
   },
   {
     id: "farm-sunny-brook",
@@ -48,6 +50,7 @@ export const SAMPLE_FARMS: Farm[] = [
     ownerId: "user-farmer-sunny-brook",
     offersPickup: true,
     offersDelivery: false,
+    shopOpen: true,
   },
   {
     id: "farm-valley-creamery",
@@ -64,6 +67,7 @@ export const SAMPLE_FARMS: Farm[] = [
     ownerId: "user-farmer-valley-creamery",
     offersPickup: true,
     offersDelivery: true,
+    shopOpen: true,
     deliveryNotes: "Local delivery within 8 miles, Tue–Sat.",
   },
 ];

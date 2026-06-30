@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Farm" ADD COLUMN "shopOpen" BOOLEAN NOT NULL DEFAULT true;

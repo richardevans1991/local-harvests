@@ -46,6 +46,7 @@ async function main() {
         ownerId: farm.ownerId,
         offersPickup: farm.offersPickup,
         offersDelivery: farm.offersDelivery,
+        shopOpen: farm.shopOpen,
         deliveryNotes: farm.deliveryNotes ?? null,
       },
     });

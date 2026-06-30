@@ -55,6 +55,7 @@ export async function createFarmerFarm(
       distance: 0,
       offersPickup: true,
       offersDelivery: false,
+      shopOpen: true,
       ownerId,
     },
   });
