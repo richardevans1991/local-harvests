@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireFarmerFarm } from "@/lib/farmer-farm";
+import { notifyCustomerOrderReady } from "@/lib/order-notifications";
 import {
   canTransitionStatus,
   type OrderStatus,
@@ -55,6 +56,12 @@ export async function PATCH(
         fulfillmentMethod: true,
       },
     });
+
+    if (nextStatus === "ready") {
+      void notifyCustomerOrderReady(orderId, farm.id).catch((err) =>
+        console.error("Order ready email error:", err)
+      );
+    }
 
     return NextResponse.json({ order });
   } catch (error) {

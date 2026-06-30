@@ -211,14 +211,19 @@ function OrderCard({
           </p>
         </div>
         {action && onStatusUpdate && (
-          <button
-            type="button"
-            disabled={updating}
-            onClick={() => onStatusUpdate(order.orderId, action.next)}
-            className="rounded-full bg-harvest-green px-4 py-2 text-sm font-medium text-harvest-brown transition hover:bg-harvest-green-dark hover:text-white disabled:opacity-60"
-          >
-            {updating ? "Updating…" : action.label}
-          </button>
+          <div className="text-right">
+            <button
+              type="button"
+              disabled={updating}
+              onClick={() => onStatusUpdate(order.orderId, action.next)}
+              className="rounded-full bg-harvest-green px-4 py-2 text-sm font-medium text-harvest-brown transition hover:bg-harvest-green-dark hover:text-white disabled:opacity-60"
+            >
+              {updating ? "Updating…" : action.label}
+            </button>
+            {action.next === "ready" && (
+              <p className="mt-1 text-xs text-harvest-brown/60">We&apos;ll email the customer</p>
+            )}
+          </div>
         )}
       </div>
 

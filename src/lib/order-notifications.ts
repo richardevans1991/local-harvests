@@ -292,6 +292,170 @@ function buildCustomerOrderEmail({
   return { subject, text, html };
 }
 
+function buildCustomerOrderReadyEmail({
+  customerName,
+  orderId,
+  farmName,
+  farmLocation,
+  pickupDate,
+  fulfillmentMethod,
+  deliveryAddress,
+  items,
+  ordersUrl,
+  farmUrl,
+}: {
+  customerName: string;
+  orderId: string;
+  farmName: string;
+  farmLocation: string;
+  pickupDate: string;
+  fulfillmentMethod: string;
+  deliveryAddress: string | null;
+  items: { name: string; quantity: number }[];
+  ordersUrl: string;
+  farmUrl: string;
+}) {
+  const isDelivery = fulfillmentMethod === "delivery";
+  const shortRef = orderId.slice(-8).toUpperCase();
+  const subject = isDelivery
+    ? `Your order is ready for delivery — ${farmName}`
+    : `Your order is ready for pickup — ${farmName}`;
+
+  const headline = isDelivery ? "Ready for delivery" : "Ready for pickup";
+  const mainMessage = isDelivery
+    ? `${farmName} has prepared your order. It will be delivered on ${pickupDate}${deliveryAddress ? ` to ${deliveryAddress}` : ""}.`
+    : `${farmName} has prepared your order. You can collect it on ${pickupDate}.`;
+
+  const pickupHint = isDelivery
+    ? "If you need to change delivery arrangements, contact the farm shop directly."
+    : `Collect from ${farmName}${farmLocation ? ` (${farmLocation})` : ""} on your chosen date. Contact the farm if you need directions or a different time.`;
+
+  const itemLines = items.map((item) => `- ${item.name} × ${item.quantity}`).join("\n");
+  const itemListHtml = items
+    .map(
+      (item) =>
+        `<li style="margin:0 0 6px;font-size:14px;color:#4a3728;">${escapeHtml(item.name)} × ${item.quantity}</li>`
+    )
+    .join("");
+
+  const text = [
+    `Hi ${customerName},`,
+    "",
+    `Good news — your order from ${farmName} is ready!`,
+    "",
+    mainMessage,
+    pickupHint,
+    "",
+    `Order reference: #${shortRef}`,
+    "",
+    "Your items:",
+    itemLines,
+    "",
+    `View your orders: ${ordersUrl}`,
+    `Farm shop: ${farmUrl}`,
+    "",
+    "— Local Harvest",
+  ].join("\n");
+
+  const html = `
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background:#f7f3eb;font-family:Georgia,'Times New Roman',serif;color:#4a3728;">
+    <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
+      <div style="background:#ffffff;border:1px solid #e8e0d4;border-radius:16px;overflow:hidden;">
+        <div style="background:#8b9a6b;padding:20px 24px;">
+          <p style="margin:0;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#f7f3eb;">Local Harvest</p>
+          <h1 style="margin:8px 0 0;font-size:24px;color:#f7f3eb;">${headline} 🧺</h1>
+        </div>
+        <div style="padding:24px;">
+          <p style="margin:0 0 8px;line-height:1.6;">Hi ${escapeHtml(customerName)},</p>
+          <p style="margin:0 0 16px;line-height:1.6;">${escapeHtml(mainMessage)}</p>
+
+          <div style="background:#f7f3eb;border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;">
+            <p style="margin:0 0 8px;"><strong>Farm shop:</strong> <a href="${farmUrl}" style="color:#5c6b44;">${escapeHtml(farmName)}</a></p>
+            ${
+              !isDelivery && farmLocation
+                ? `<p style="margin:0 0 8px;"><strong>Area:</strong> ${escapeHtml(farmLocation)}</p>`
+                : ""
+            }
+            <p style="margin:0 0 8px;"><strong>${isDelivery ? "Delivery date" : "Pickup date"}:</strong> ${escapeHtml(pickupDate)}</p>
+            ${
+              isDelivery && deliveryAddress
+                ? `<p style="margin:0;"><strong>Address:</strong> ${escapeHtml(deliveryAddress)}</p>`
+                : ""
+            }
+            <p style="margin:${isDelivery && deliveryAddress ? "8px" : "0"} 0 0;"><strong>Order reference:</strong> #${shortRef}</p>
+          </div>
+
+          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#4a3728;">${escapeHtml(pickupHint)}</p>
+
+          <h2 style="margin:0 0 12px;font-size:18px;color:#5c6b44;">Your items</h2>
+          <ul style="margin:0;padding-left:20px;">${itemListHtml}</ul>
+
+          <div style="margin-top:24px;text-align:center;">
+            <a href="${ordersUrl}" style="display:inline-block;background:#8b9a6b;color:#f7f3eb;text-decoration:none;padding:12px 24px;border-radius:999px;font-size:14px;font-weight:600;">
+              View my orders
+            </a>
+          </div>
+        </div>
+      </div>
+      <p style="margin:16px 0 0;text-align:center;font-size:12px;color:#7a6a58;">
+        Fresh food from farms near you — local-harvests.co.uk
+      </p>
+    </div>
+  </body>
+</html>`;
+
+  return { subject, text, html };
+}
+
+export async function notifyCustomerOrderReady(orderId: string, farmId: string) {
+  if (!isEmailConfigured()) {
+    return;
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
+
+  if (!order || order.status !== "ready") return;
+
+  const farm = await prisma.farm.findUnique({
+    where: { id: farmId },
+    select: { id: true, name: true, location: true },
+  });
+
+  if (!farm) return;
+
+  const farmItems = order.items.filter((item) => item.farmId === farmId);
+  if (!farmItems.length) return;
+
+  const appUrl = getAppUrl();
+  const email = buildCustomerOrderReadyEmail({
+    customerName: order.customerName,
+    orderId: order.id,
+    farmName: farm.name,
+    farmLocation: farm.location,
+    pickupDate: order.pickupDate,
+    fulfillmentMethod: order.fulfillmentMethod,
+    deliveryAddress: order.deliveryAddress,
+    items: farmItems.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+    })),
+    ordersUrl: `${appUrl}/orders`,
+    farmUrl: `${appUrl}/farms/${farm.id}`,
+  });
+
+  await sendEmail({
+    to: order.email,
+    subject: email.subject,
+    text: email.text,
+    html: email.html,
+  });
+}
+
 export async function notifyOrderParties(orderId: string) {
   if (!isEmailConfigured()) {
     return;
