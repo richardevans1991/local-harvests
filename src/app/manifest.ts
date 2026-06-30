@@ -15,21 +15,22 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["food", "shopping"],
     icons: [
       {
-        src: "/logos/logo-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/logos/favicon-192.png",
+        sizes: "192x192",
+        type: "image/png",
         purpose: "any",
       },
       {
-        src: "/logos/logo-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "maskable",
+        src: "/logos/favicon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
       },
       {
-        src: "/logos/logo.jpg",
+        src: "/logos/favicon-512.png",
         sizes: "512x512",
-        type: "image/jpeg",
+        type: "image/png",
+        purpose: "maskable",
       },
     ],
   };

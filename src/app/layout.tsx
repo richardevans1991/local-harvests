@@ -60,8 +60,13 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: "/logos/logo-icon.svg",
-    apple: "/logos/logo-icon.svg",
+    icon: [
+      { url: "/logos/favicon-96.png", sizes: "96x96", type: "image/png" },
+      { url: "/logos/favicon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/logos/favicon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: "/logos/favicon-96.png",
   },
 };
 
