@@ -11,14 +11,14 @@ export async function GET() {
       prisma.product.count(),
     ]);
     const databaseUrl = process.env.DATABASE_URL ?? "";
-    const persisted =
-      databaseUrl.includes("/app/data/") || databaseUrl.includes("data/dev.db");
+    const persisted = databaseUrl.includes("/app/data/");
 
     return NextResponse.json({
       ok: true,
       farms: farmCount,
       farmerAccounts,
       products: productCount,
+      databaseUrl,
       databasePersisted: persisted,
       hint:
         farmerAccounts > 0 && farmCount === 0
