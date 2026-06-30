@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
+import {
+  DEMO_FARMER_EMAILS,
+  DEMO_FARMER_USER_IDS,
+  DEMO_FARM_IDS,
+} from "@/lib/demo-data";
 import { prisma } from "@/lib/prisma";
-import { DEMO_FARMERS, SAMPLE_FARMS } from "@/lib/sample-data";
-
-const KEEP_NAME_MATCH = "ringwood";
-
-function isKeptFarm(name: string) {
-  return name.toLowerCase().includes(KEEP_NAME_MATCH);
-}
 
 function authorize(request: Request) {
   const secret = process.env.ADMIN_SECRET?.trim();
@@ -22,6 +20,26 @@ function authorize(request: Request) {
   return null;
 }
 
+export async function GET(request: Request) {
+  const authError = authorize(request);
+  if (authError) {
+    return NextResponse.json({ error: authError }, { status: authError === "Unauthorized." ? 401 : 503 });
+  }
+
+  const farms = await prisma.farm.findMany({
+    select: { id: true, name: true, location: true, ownerId: true },
+    orderBy: { name: "asc" },
+  });
+
+  return NextResponse.json({
+    farms: farms.map((farm) => ({
+      ...farm,
+      isSeededDemo: DEMO_FARM_IDS.includes(farm.id),
+    })),
+    demoFarmIds: DEMO_FARM_IDS,
+  });
+}
+
 export async function POST(request: Request) {
   const authError = authorize(request);
   if (authError) {
@@ -29,53 +47,44 @@ export async function POST(request: Request) {
   }
 
   try {
-    const farms = await prisma.farm.findMany({
-      select: { id: true, name: true, ownerId: true },
+    const demoFarms = await prisma.farm.findMany({
+      where: { id: { in: DEMO_FARM_IDS } },
+      select: { id: true, name: true },
     });
 
-    const kept = farms.filter((farm) => isKeptFarm(farm.name));
-    const removing = farms.filter((farm) => !isKeptFarm(farm.name));
+    const realFarms = await prisma.farm.findMany({
+      where: { id: { notIn: DEMO_FARM_IDS } },
+      select: { id: true, name: true },
+    });
 
-    if (kept.length === 0) {
-      return NextResponse.json(
-        {
-          error: `No farm matching "${KEEP_NAME_MATCH}" found. Nothing was deleted.`,
-        },
-        { status: 400 }
-      );
+    if (demoFarms.length > 0) {
+      await prisma.orderItem.deleteMany({ where: { farmId: { in: DEMO_FARM_IDS } } });
+      await prisma.product.deleteMany({ where: { farmId: { in: DEMO_FARM_IDS } } });
+      await prisma.farmCategory.deleteMany({ where: { farmId: { in: DEMO_FARM_IDS } } });
+      await prisma.farm.deleteMany({ where: { id: { in: DEMO_FARM_IDS } } });
     }
 
-    const removeIds = removing.map((farm) => farm.id);
-    const keptOwnerIds = new Set(kept.map((farm) => farm.ownerId));
-    const demoUserIds = DEMO_FARMERS.map((user) => user.id);
-
-    if (removeIds.length > 0) {
-      await prisma.orderItem.deleteMany({ where: { farmId: { in: removeIds } } });
-      await prisma.product.deleteMany({ where: { farmId: { in: removeIds } } });
-      await prisma.farmCategory.deleteMany({ where: { farmId: { in: removeIds } } });
-      await prisma.farm.deleteMany({ where: { id: { in: removeIds } } });
-    }
-
-    const usersToDelete = await prisma.user.findMany({
+    const demoUsers = await prisma.user.findMany({
       where: {
-        role: "farmer",
-        id: { notIn: Array.from(keptOwnerIds) },
-        OR: [{ id: { in: demoUserIds } }, { farm: null }],
+        OR: [{ id: { in: DEMO_FARMER_USER_IDS } }, { email: { in: DEMO_FARMER_EMAILS } }],
       },
       select: { id: true, email: true },
     });
 
-    if (usersToDelete.length > 0) {
+    if (demoUsers.length > 0) {
       await prisma.user.deleteMany({
-        where: { id: { in: usersToDelete.map((user) => user.id) } },
+        where: { id: { in: demoUsers.map((user) => user.id) } },
       });
     }
 
     return NextResponse.json({
-      kept: kept.map((farm) => ({ id: farm.id, name: farm.name })),
-      removedFarms: removing.map((farm) => ({ id: farm.id, name: farm.name })),
-      removedUsers: usersToDelete.map((user) => user.email),
-      seededDemoIds: SAMPLE_FARMS.map((farm) => farm.id),
+      untouchedFarms: realFarms,
+      removedFarms: demoFarms,
+      removedUsers: demoUsers.map((user) => user.email),
+      message:
+        demoFarms.length > 0
+          ? "Removed seeded demo farms only. Your real farms were not touched."
+          : "No seeded demo farms were in the database.",
     });
   } catch (error) {
     console.error("remove-demo-farms error:", error);

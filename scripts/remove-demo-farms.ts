@@ -1,84 +1,70 @@
 import { PrismaClient } from "@prisma/client";
-import { DEMO_FARMERS, SAMPLE_FARMS } from "../src/lib/sample-data";
+import {
+  DEMO_FARMER_EMAILS,
+  DEMO_FARMER_USER_IDS,
+  DEMO_FARM_IDS,
+} from "../src/lib/demo-data";
 
 const prisma = new PrismaClient();
 
-const KEEP_NAME_MATCH = "ringwood";
-
-function isKeptFarm(name: string) {
-  return name.toLowerCase().includes(KEEP_NAME_MATCH);
-}
-
 async function main() {
-  const farms = await prisma.farm.findMany({
-    select: { id: true, name: true, ownerId: true },
+  const demoFarms = await prisma.farm.findMany({
+    where: { id: { in: DEMO_FARM_IDS } },
+    select: { id: true, name: true },
   });
 
-  const kept = farms.filter((farm) => isKeptFarm(farm.name));
-  const removing = farms.filter((farm) => !isKeptFarm(farm.name));
+  const realFarms = await prisma.farm.findMany({
+    where: { id: { notIn: DEMO_FARM_IDS } },
+    select: { id: true, name: true },
+  });
 
-  if (kept.length === 0) {
-    console.error(
-      `No farm matching "${KEEP_NAME_MATCH}" found. Aborting so nothing is deleted by mistake.`
-    );
-    process.exit(1);
+  console.log("Real farms (untouched):");
+  if (realFarms.length === 0) {
+    console.log("  (none in database)");
+  } else {
+    realFarms.forEach((farm) => console.log(`  ✓ ${farm.name} (${farm.id})`));
   }
 
-  if (removing.length === 0) {
-    console.log("Nothing to remove — only the kept farm(s) are present:");
-    kept.forEach((farm) => console.log(`  ✓ ${farm.name} (${farm.id})`));
+  if (demoFarms.length === 0) {
+    console.log("\nNo seeded demo farms found — nothing to remove.");
     return;
   }
 
-  const removeIds = removing.map((farm) => farm.id);
-  const keptOwnerIds = new Set(kept.map((farm) => farm.ownerId));
-  const demoUserIds = DEMO_FARMERS.map((user) => user.id);
-  const demoFarmIds = SAMPLE_FARMS.map((farm) => farm.id);
-
-  console.log("Keeping:");
-  kept.forEach((farm) => console.log(`  ✓ ${farm.name} (${farm.id})`));
-
-  console.log("Removing farms:");
-  removing.forEach((farm) => console.log(`  ✗ ${farm.name} (${farm.id})`));
+  console.log("\nRemoving seeded demo farms only:");
+  demoFarms.forEach((farm) => console.log(`  ✗ ${farm.name} (${farm.id})`));
 
   await prisma.orderItem.deleteMany({
-    where: { farmId: { in: removeIds } },
+    where: { farmId: { in: DEMO_FARM_IDS } },
   });
 
   await prisma.product.deleteMany({
-    where: { farmId: { in: removeIds } },
+    where: { farmId: { in: DEMO_FARM_IDS } },
   });
 
   await prisma.farmCategory.deleteMany({
-    where: { farmId: { in: removeIds } },
+    where: { farmId: { in: DEMO_FARM_IDS } },
   });
 
   await prisma.farm.deleteMany({
-    where: { id: { in: removeIds } },
+    where: { id: { in: DEMO_FARM_IDS } },
   });
 
-  const usersToDelete = await prisma.user.findMany({
+  const demoUsers = await prisma.user.findMany({
     where: {
-      role: "farmer",
-      id: { notIn: Array.from(keptOwnerIds) },
-      OR: [
-        { id: { in: demoUserIds } },
-        { farm: null },
-      ],
+      OR: [{ id: { in: DEMO_FARMER_USER_IDS } }, { email: { in: DEMO_FARMER_EMAILS } }],
     },
     select: { id: true, email: true },
   });
 
-  if (usersToDelete.length > 0) {
-    console.log("Removing farmer accounts:");
-    usersToDelete.forEach((user) => console.log(`  ✗ ${user.email}`));
+  if (demoUsers.length > 0) {
+    console.log("\nRemoving demo farmer accounts:");
+    demoUsers.forEach((user) => console.log(`  ✗ ${user.email}`));
     await prisma.user.deleteMany({
-      where: { id: { in: usersToDelete.map((user) => user.id) } },
+      where: { id: { in: demoUsers.map((user) => user.id) } },
     });
   }
 
-  console.log("\nDone.");
-  console.log(`Removed ${removing.length} farm(s) (${demoFarmIds.filter((id) => removeIds.includes(id)).length} were seeded demos).`);
+  console.log(`\nDone. Removed ${demoFarms.length} demo farm(s).`);
 }
 
 main()
