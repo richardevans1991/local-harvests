@@ -343,6 +343,13 @@ function CheckoutContent() {
                     ? "Confirm Order (Pay on Delivery)"
                     : "Confirm Order (Pay at Pickup)"}
             </button>
+            <p className="mt-3 text-center text-xs text-harvest-brown/70">
+              By placing an order you agree to our{" "}
+              <Link href="/terms" className="text-harvest-green hover:underline">
+                Terms of Service
+              </Link>
+              .
+            </p>
             <Link
               href="/cart"
               className="mt-3 block text-center text-sm text-harvest-brown hover:text-harvest-green"

@@ -102,6 +102,16 @@ export default function SiteFooter({ variant = "default" }: SiteFooterProps) {
                   hello@local-harvests.co.uk
                 </a>
               </li>
+              <li>
+                <Link href="/privacy" className={linkClass}>
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className={linkClass}>
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

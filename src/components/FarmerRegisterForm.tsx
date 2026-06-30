@@ -82,6 +82,18 @@ export default function FarmerRegisterForm() {
         >
           {loading ? "Creating account..." : "Create account & continue"}
         </button>
+
+        <p className="text-center text-xs text-harvest-brown/70">
+          By creating an account you agree to our{" "}
+          <Link href="/terms" className="text-harvest-green hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="text-harvest-green hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
       <p className="mt-6 text-center text-sm text-harvest-brown/80">
