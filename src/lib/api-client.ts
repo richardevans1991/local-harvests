@@ -148,6 +148,30 @@ export const api = {
           };
         }>("/api/farmer/onboarding"),
     },
+    upload: async (file: Blob, filename: string) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file, filename);
+
+        const res = await fetch("/api/farmer/upload", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error ?? "Upload failed");
+        }
+
+        return data as { url: string };
+      } finally {
+        clearTimeout(timeout);
+      }
+    },
     orders: {
       list: () =>
         request<{

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import ImageUploadField from "@/components/ImageUploadField";
 import { api } from "@/lib/api-client";
 import { isValidImageUrl } from "@/lib/image-utils";
 import { useAuthStore } from "@/stores/auth-store";
@@ -34,9 +35,7 @@ export default function FarmerOnboarding() {
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [productPrice, setProductPrice] = useState("");
-  const [productImage, setProductImage] = useState(
-    "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop"
-  );
+  const [productImage, setProductImage] = useState("");
 
   const farmId = currentUser?.farmId;
 
@@ -140,8 +139,8 @@ export default function FarmerOnboarding() {
       setError("Enter a product name, description, and valid price.");
       return;
     }
-    if (!isValidImageUrl(productImage.trim())) {
-      setError("Product image must be a full URL starting with https://");
+    if (!productImage.trim() || !isValidImageUrl(productImage.trim())) {
+      setError("Add a product photo before publishing.");
       return;
     }
 
@@ -316,16 +315,13 @@ export default function FarmerOnboarding() {
               type="number"
               required
             />
-            <Field
-              label="Image URL"
+            <ImageUploadField
+              label="Product photo"
               value={productImage}
               onChange={setProductImage}
               required
-              placeholder="https://images.unsplash.com/..."
+              hint="Snap a photo of this product on your phone — it uploads automatically."
             />
-            <p className="text-xs text-harvest-brown/70">
-              Paste a photo link for now — proper uploads are on our roadmap.
-            </p>
             <button
               type="submit"
               disabled={submitting}

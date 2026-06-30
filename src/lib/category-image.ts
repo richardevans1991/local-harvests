@@ -9,7 +9,7 @@ export function validateCategoryImage(image?: string | null) {
   const normalized = normalizeCategoryImage(image);
   if (!normalized) return null;
   if (!isValidImageUrl(normalized)) {
-    return "Image must be a full URL starting with https:// (e.g. an Unsplash link).";
+    return "Upload a photo or use a full image URL starting with https://.";
   }
   return null;
 }

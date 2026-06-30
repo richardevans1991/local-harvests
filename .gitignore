@@ -44,5 +44,9 @@ next-env.d.ts
 /prisma/dev.db
 /prisma/dev.db-journal
 
+# farmer uploads
+/data/uploads/*
+!/data/uploads/.gitkeep
+
 # local dev terminals/logs
 /terminals/

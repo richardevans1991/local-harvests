@@ -5,6 +5,7 @@ import FarmerOnboardingChecklist from "@/components/FarmerOnboardingChecklist";
 import FarmerOrdersPanel from "@/components/FarmerOrdersPanel";
 import FarmerSubscriptionBanner from "@/components/FarmerSubscriptionBanner";
 import type { FarmerOnboardingStatus } from "@/lib/farmer-onboarding";
+import ImageUploadField from "@/components/ImageUploadField";
 import SafeImage from "@/components/SafeImage";
 import type { FarmerSubscriptionView } from "@/lib/farmer-subscription";
 import { isValidImageUrl } from "@/lib/image-utils";
@@ -283,11 +284,11 @@ export default function FarmerDashboard() {
       return;
     }
     if (!productImage.trim()) {
-      setError("Product image URL is required.");
+      setError("Add a product photo.");
       return;
     }
     if (!isValidImageUrl(productImage)) {
-      setError("Image must be a full URL starting with https:// (e.g. an Unsplash link).");
+      setError("Upload a photo or use a valid image URL.");
       return;
     }
     if (!category) {
@@ -411,8 +412,20 @@ export default function FarmerDashboard() {
               onChange={setFarmDescription}
               multiline
             />
-            <Field label="Card image URL" value={farmImage} onChange={setFarmImage} />
-            <Field label="Banner image URL" value={farmBanner} onChange={setFarmBanner} />
+            <ImageUploadField
+              label="Farm card photo"
+              value={farmImage}
+              onChange={setFarmImage}
+              disabled={!canEdit}
+              hint="Shown on the marketplace — a photo of your farm shop or produce."
+            />
+            <ImageUploadField
+              label="Shop banner photo"
+              value={farmBanner}
+              onChange={setFarmBanner}
+              disabled={!canEdit}
+              hint="Wide photo for the top of your farm shop page."
+            />
 
             <div className="rounded-xl border border-harvest-tan/60 bg-harvest-parchment/30 p-4">
               <h3 className="text-sm font-semibold text-harvest-green">
@@ -494,12 +507,12 @@ export default function FarmerDashboard() {
               required
             />
             <Field label="Price (£)" value={productPrice} onChange={setProductPrice} type="number" required />
-            <Field
-              label="Image URL"
+            <ImageUploadField
+              label="Product photo"
               value={productImage}
               onChange={setProductImage}
               required
-              placeholder="https://images.unsplash.com/photo-..."
+              disabled={!canEdit}
             />
             <div>
               <label className="mb-1 block text-sm font-medium text-harvest-brown">
@@ -574,11 +587,12 @@ export default function FarmerDashboard() {
               {categorySubmitting ? "Adding..." : categorySaved ? "✓ Added!" : "Add category"}
             </button>
           </div>
-          <input
+          <ImageUploadField
+            label="Category photo (optional)"
             value={newCategoryImage}
-            onChange={(e) => setNewCategoryImage(e.target.value)}
-            placeholder="Category image URL (optional) — https://images.unsplash.com/..."
-            className="w-full rounded-lg border border-harvest-tan px-4 py-2.5 text-sm outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20"
+            onChange={setNewCategoryImage}
+            disabled={!canEdit}
+            hint="Optional photo for this category in your shop."
           />
         </form>
         {categories.length === 0 ? (
@@ -600,23 +614,12 @@ export default function FarmerDashboard() {
                       placeholder="Category name"
                       className="w-full rounded-lg border border-harvest-tan px-3 py-2 text-sm outline-none focus:border-harvest-green"
                     />
-                    <input
+                    <ImageUploadField
+                      label="Category photo (optional)"
                       value={editingCategoryImage}
-                      onChange={(e) => setEditingCategoryImage(e.target.value)}
-                      placeholder="Category image URL (optional) — https://images.unsplash.com/..."
-                      className="w-full rounded-lg border border-harvest-tan px-3 py-2 text-sm outline-none focus:border-harvest-green"
+                      onChange={setEditingCategoryImage}
+                      disabled={!canEdit}
                     />
-                    {editingCategoryImage.trim() && (
-                      <div className="relative h-24 w-full max-w-xs overflow-hidden rounded-lg border border-harvest-tan/60">
-                        <SafeImage
-                          src={editingCategoryImage}
-                          alt="Category preview"
-                          fill
-                          className="object-cover"
-                          sizes="200px"
-                        />
-                      </div>
-                    )}
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"

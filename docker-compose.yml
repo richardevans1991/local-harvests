@@ -5,6 +5,7 @@ services:
       - "3000:3000"
     volumes:
       - harvest-db:/app/prisma
+      - harvest-uploads:/app/data/uploads
     environment:
       DATABASE_URL: "file:./dev.db"
       AUTH_SECRET: "${AUTH_SECRET:-change-me-in-production}"
@@ -20,3 +21,4 @@ services:
 
 volumes:
   harvest-db:
+  harvest-uploads:
