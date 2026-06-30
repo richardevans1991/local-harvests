@@ -17,6 +17,7 @@ services:
       RESEND_API_KEY: "${RESEND_API_KEY:-}"
       EMAIL_FROM: "${EMAIL_FROM:-Local Harvest <onboarding@resend.dev>}"
       SEED_ON_START: "${SEED_ON_START:-false}"
+      REMOVE_DEMOS_ON_START: "${REMOVE_DEMOS_ON_START:-false}"
     restart: unless-stopped
 
 volumes:
