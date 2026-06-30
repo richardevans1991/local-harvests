@@ -35,7 +35,9 @@ export interface Farm {
   image: string;
   banner: string;
   location: string;
+  postcode?: string | null;
   distance: number;
+  distanceMiles?: number | null;
   ownerId: string;
   offersPickup: boolean;
   offersDelivery: boolean;

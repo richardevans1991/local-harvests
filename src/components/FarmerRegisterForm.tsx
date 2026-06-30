@@ -12,6 +12,7 @@ export default function FarmerRegisterForm() {
   const [name, setName] = useState("");
   const [farmName, setFarmName] = useState("");
   const [location, setLocation] = useState("");
+  const [postcode, setPostcode] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,6 +26,7 @@ export default function FarmerRegisterForm() {
     const result = await register(email, password, name, "farmer", {
       farmName,
       location,
+      postcode: postcode.trim() || undefined,
     });
 
     setLoading(false);
@@ -59,7 +61,13 @@ export default function FarmerRegisterForm() {
           value={location}
           onChange={setLocation}
           required
-          placeholder="e.g. North Yorkshire, Cotswolds"
+          placeholder="e.g. Walkford, New Forest"
+        />
+        <Field
+          label="Postcode (recommended)"
+          value={postcode}
+          onChange={setPostcode}
+          placeholder="e.g. BH24 1PA"
         />
         <Field label="Email" value={email} onChange={setEmail} type="email" required />
         <Field

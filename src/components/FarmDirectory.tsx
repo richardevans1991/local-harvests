@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import FarmCard from "@/components/FarmCard";
 import SearchFilters from "@/components/SearchFilters";
 import { api } from "@/lib/api-client";
@@ -9,16 +9,44 @@ import type { Farm } from "@/types";
 export default function FarmDirectory() {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("All Locations");
+  const [postcodeInput, setPostcodeInput] = useState("");
+  const [activePostcode, setActivePostcode] = useState("");
+  const [searchArea, setSearchArea] = useState<string | null>(null);
 
-  useEffect(() => {
-    api.farms
-      .list()
-      .then(({ farms }) => setFarms(farms))
-      .catch(() => setFarms([]))
+  const loadFarms = useCallback((postcode?: string) => {
+    setLoading(true);
+    setError("");
+    return api.farms
+      .list(postcode)
+      .then(({ farms: loaded, search: searchMeta }) => {
+        setFarms(loaded);
+        setSearchArea(searchMeta?.area ?? searchMeta?.postcode ?? null);
+      })
+      .catch((err) => {
+        setFarms([]);
+        setSearchArea(null);
+        setError(err instanceof Error ? err.message : "Failed to load farms.");
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadFarms();
+  }, [loadFarms]);
+
+  const handlePostcodeSearch = () => {
+    const next = postcodeInput.trim();
+    if (!next) {
+      setActivePostcode("");
+      loadFarms();
+      return;
+    }
+    setActivePostcode(next);
+    loadFarms(next);
+  };
 
   const locationOptions = useMemo(() => {
     const unique = Array.from(new Set(farms.map((farm) => farm.location).filter(Boolean))).sort();
@@ -43,10 +71,14 @@ export default function FarmDirectory() {
     <section className="py-10">
       <SearchFilters
         search={search}
+        postcode={postcodeInput}
         location={location}
         locations={locationOptions}
         onSearchChange={setSearch}
+        onPostcodeChange={setPostcodeInput}
+        onPostcodeSubmit={handlePostcodeSearch}
         onLocationChange={setLocation}
+        searchArea={activePostcode ? searchArea : null}
       />
 
       <div className="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
@@ -60,6 +92,12 @@ export default function FarmDirectory() {
               : `${filteredFarms.length} farm${filteredFarms.length !== 1 ? "s" : ""} found`}
           </span>
         </div>
+
+        {error && (
+          <div className="home-glass mb-4 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

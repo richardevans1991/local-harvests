@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ensureFarmCategories } from "@/lib/categories";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { resolveFarmCoordinates } from "@/lib/uk-geography";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -53,6 +54,22 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
+    const nextLocation = typeof body.location === "string" ? body.location : farm.location;
+    const nextPostcode =
+      typeof body.postcode === "string" ? body.postcode : (farm.postcode ?? "");
+    const locationChanged = nextLocation.trim() !== farm.location;
+    const postcodeChanged =
+      nextPostcode.trim().toUpperCase() !== (farm.postcode ?? "").toUpperCase();
+
+    const coordinates =
+      locationChanged || postcodeChanged
+        ? await resolveFarmCoordinates(nextPostcode, nextLocation)
+        : {
+            postcode: farm.postcode,
+            latitude: farm.latitude,
+            longitude: farm.longitude,
+          };
+
     const updated = await prisma.farm.update({
       where: { id },
       data: {
@@ -61,7 +78,10 @@ export async function PATCH(request: Request, context: RouteContext) {
         shortDescription: body.shortDescription,
         image: body.image,
         banner: body.banner,
-        location: body.location,
+        location: nextLocation,
+        postcode: coordinates.postcode,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
         distance: body.distance,
         offersPickup: body.offersPickup,
         offersDelivery: body.offersDelivery,

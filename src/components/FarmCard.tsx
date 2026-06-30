@@ -7,6 +7,13 @@ interface FarmCardProps {
 }
 
 export default function FarmCard({ farm }: FarmCardProps) {
+  const distanceLabel =
+    farm.distanceMiles != null
+      ? `${farm.distanceMiles} mi`
+      : farm.distance > 0
+        ? `${farm.distance} mi`
+        : null;
+
   return (
     <Link href={`/farms/${farm.id}`} className="farm-card group block overflow-hidden">
       <div className="relative h-48 overflow-hidden">
@@ -24,9 +31,9 @@ export default function FarmCard({ farm }: FarmCardProps) {
           <h3 className="font-serif text-lg font-semibold text-harvest-green group-hover:text-harvest-green-dark">
             {farm.name}
           </h3>
-          {farm.distance > 0 && (
+          {distanceLabel && (
             <span className="shrink-0 rounded-full bg-harvest-wheat/30 px-2.5 py-0.5 text-xs font-bold text-harvest-brown">
-              {farm.distance} mi
+              {distanceLabel}
             </span>
           )}
         </div>
@@ -38,7 +45,10 @@ export default function FarmCard({ farm }: FarmCardProps) {
             Showcase — orders closed
           </p>
         )}
-        <p className="text-xs font-semibold text-harvest-rust">📍 {farm.location}</p>
+        <p className="text-xs font-semibold text-harvest-rust">
+          📍 {farm.location}
+          {farm.postcode ? ` · ${farm.postcode}` : ""}
+        </p>
       </div>
     </Link>
   );

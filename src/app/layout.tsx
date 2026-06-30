@@ -15,11 +15,42 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl =
+  process.env.APP_URL?.trim() ||
+  process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+  "https://www.local-harvests.co.uk";
+
 export const metadata: Metadata = {
-  title: "Local Harvest — Fresh food from farms near you",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Local Harvest — Fresh food from farms near you",
+    template: "%s — Local Harvest",
+  },
   description:
-    "Discover local farm shops, browse seasonal produce, and support growers in your community.",
+    "Discover local farm shops near you, browse seasonal produce, and order from UK growers in your community.",
+  keywords: [
+    "local farm shop",
+    "farm shop near me",
+    "local produce UK",
+    "click and collect farm",
+    "local harvest",
+  ],
   applicationName: "Local Harvest",
+  openGraph: {
+    type: "website",
+    locale: "en_GB",
+    url: siteUrl,
+    siteName: "Local Harvest",
+    title: "Local Harvest — Fresh food from farms near you",
+    description:
+      "Discover local farm shops near you, browse seasonal produce, and support growers in your community.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Local Harvest — Fresh food from farms near you",
+    description:
+      "Discover local farm shops near you and order fresh produce from UK growers.",
+  },
   appleWebApp: {
     capable: true,
     title: "Local Harvest",

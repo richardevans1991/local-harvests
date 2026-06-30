@@ -46,7 +46,7 @@ export const api = {
       password: string,
       name: string,
       role: UserRole,
-      farmDetails?: { farmName: string; location: string }
+      farmDetails?: { farmName: string; location: string; postcode?: string }
     ) =>
       request<{ user: PublicUser }>("/api/auth/register", {
         method: "POST",
@@ -57,6 +57,7 @@ export const api = {
           role,
           farmName: farmDetails?.farmName,
           location: farmDetails?.location,
+          postcode: farmDetails?.postcode,
         }),
       }),
     logout: () => request<{ success: boolean }>("/api/auth/logout", { method: "POST" }),
@@ -83,10 +84,41 @@ export const api = {
             }[];
           }[];
         }>("/api/customer/orders"),
+      lookup: (email: string, orderRef: string) =>
+        request<{
+          orders: {
+            orderId: string;
+            status: string;
+            pickupDate: string;
+            fulfillmentMethod: string;
+            deliveryAddress: string | null;
+            total: number;
+            createdAt: string;
+            itemCount: number;
+            items: {
+              id: string;
+              name: string;
+              quantity: number;
+              price: number;
+              farmId: string;
+            }[];
+          }[];
+        }>("/api/customer/orders/lookup", {
+          method: "POST",
+          body: JSON.stringify({ email, orderRef }),
+        }),
     },
   },
   farms: {
-    list: () => request<{ farms: Farm[] }>("/api/farms"),
+    list: (postcode?: string) => {
+      const query = postcode?.trim()
+        ? `?postcode=${encodeURIComponent(postcode.trim())}`
+        : "";
+      return request<{
+        farms: Farm[];
+        search?: { postcode: string; area: string | null };
+      }>(`/api/farms${query}`);
+    },
     get: (id: string) =>
       request<{ farm: Farm; products: Product[]; categories: FarmCategory[] }>(
         `/api/farms/${id}`

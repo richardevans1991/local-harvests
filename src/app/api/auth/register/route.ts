@@ -6,13 +6,14 @@ import type { UserRole } from "@/types";
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name, role, farmName, location } = (await request.json()) as {
+    const { email, password, name, role, farmName, location, postcode } = (await request.json()) as {
       email: string;
       password: string;
       name: string;
       role: UserRole;
       farmName?: string;
       location?: string;
+      postcode?: string;
     };
 
     if (!email || !password || !name || !role) {
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
             ownerId: existing.id,
             name: farmName!,
             location: location!,
+            postcode,
           },
           tx
         );
@@ -104,6 +106,7 @@ export async function POST(request: Request) {
               ownerId: created.id,
               name: farmName!,
               location: location!,
+              postcode,
             },
             tx
           );

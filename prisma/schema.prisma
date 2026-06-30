@@ -30,6 +30,9 @@ model Farm {
   image            String
   banner           String
   location         String
+  postcode         String?
+  latitude         Float?
+  longitude        Float?
   distance         Float
   offersPickup     Boolean   @default(true)
   offersDelivery   Boolean   @default(false)

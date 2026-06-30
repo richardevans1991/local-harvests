@@ -28,6 +28,7 @@ export default function FarmerDashboard() {
 
   const [farmName, setFarmName] = useState("");
   const [farmLocation, setFarmLocation] = useState("");
+  const [farmPostcode, setFarmPostcode] = useState("");
   const [farmDescription, setFarmDescription] = useState("");
   const [farmShortDescription, setFarmShortDescription] = useState("");
   const [farmBanner, setFarmBanner] = useState("");
@@ -73,6 +74,7 @@ export default function FarmerDashboard() {
     }
     setFarmName(farm.name);
     setFarmLocation(farm.location);
+    setFarmPostcode(farm.postcode ?? "");
     setFarmDescription(farm.description);
     setFarmShortDescription(farm.shortDescription);
     setFarmBanner(farm.banner);
@@ -138,6 +140,7 @@ export default function FarmerDashboard() {
       const { farm: updated } = await api.farms.update(farmId, {
         name: farmName,
         location: farmLocation.trim(),
+        postcode: farmPostcode.trim() || null,
         description: farmDescription,
         shortDescription: farmShortDescription,
         banner: farmBanner,
@@ -404,6 +407,16 @@ export default function FarmerDashboard() {
               value={farmLocation}
               onChange={setFarmLocation}
             />
+            <Field
+              label="Postcode"
+              value={farmPostcode}
+              onChange={setFarmPostcode}
+              placeholder="e.g. BH24 1PA"
+            />
+            <p className="-mt-2 text-xs text-harvest-brown/65">
+              Used to show your shop in &ldquo;farms near you&rdquo; searches. Save profile after
+              updating.
+            </p>
             <Field
               label="Short description"
               value={farmShortDescription}

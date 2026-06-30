@@ -13,7 +13,7 @@ interface AuthState {
     password: string,
     name: string,
     role: UserRole,
-    farmDetails?: { farmName: string; location: string }
+    farmDetails?: { farmName: string; location: string; postcode?: string }
   ) => Promise<{ success: boolean; error?: string }>;
   login: (
     email: string,

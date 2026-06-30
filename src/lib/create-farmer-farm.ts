@@ -7,17 +7,19 @@ import {
   DEFAULT_FARM_SHORT_DESCRIPTION,
 } from "@/lib/farm-defaults";
 import { prisma } from "@/lib/prisma";
+import { resolveFarmCoordinates } from "@/lib/uk-geography";
 
 interface CreateFarmerFarmInput {
   ownerId: string;
   name: string;
   location: string;
+  postcode?: string;
 }
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export async function createFarmerFarm(
-  { ownerId, name, location }: CreateFarmerFarmInput,
+  { ownerId, name, location, postcode }: CreateFarmerFarmInput,
   db: DbClient = prisma
 ) {
   const trimmedName = name.trim();
@@ -43,11 +45,16 @@ export async function createFarmerFarm(
     farmId = createFarmId(trimmedName);
   }
 
+  const coordinates = await resolveFarmCoordinates(postcode, trimmedLocation);
+
   return db.farm.create({
     data: {
       id: farmId,
       name: trimmedName,
       location: trimmedLocation,
+      postcode: coordinates.postcode,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
       shortDescription: DEFAULT_FARM_SHORT_DESCRIPTION,
       description: DEFAULT_FARM_DESCRIPTION,
       image: DEFAULT_FARM_IMAGE,
