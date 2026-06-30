@@ -3,6 +3,8 @@ import SiteFooter from "@/components/SiteFooter";
 import { getShowcaseFarm } from "@/lib/showcase-farm";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const benefits = [
   "Your own online farm shop with photos and categories",
   "Click & collect and delivery options",
