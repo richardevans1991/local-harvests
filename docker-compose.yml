@@ -4,8 +4,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - harvest-db:/app/prisma
-      - harvest-uploads:/app/data/uploads
+      - harvest-data:/app/data
     environment:
       DATABASE_URL: "file:./dev.db"
       AUTH_SECRET: "${AUTH_SECRET:-change-me-in-production}"
@@ -21,5 +20,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  harvest-db:
-  harvest-uploads:
+  harvest-data:
