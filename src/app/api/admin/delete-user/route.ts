@@ -35,7 +35,13 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.user.delete({ where: { id: user.id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.order.updateMany({
+        where: { userId: user.id },
+        data: { userId: null },
+      });
+      await tx.user.delete({ where: { id: user.id } });
+    });
 
     return NextResponse.json({
       deleted: true,

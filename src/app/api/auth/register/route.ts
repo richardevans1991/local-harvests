@@ -35,41 +35,86 @@ export async function POST(request: Request) {
 
     const normalizedEmail = email.trim().toLowerCase();
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existing) {
-      return NextResponse.json(
-        { error: "An account with this email already exists." },
-        { status: 409 }
-      );
-    }
-
     const passwordHash = await hashPassword(password);
 
-    const user = await prisma.$transaction(async (tx) => {
-      const created = await tx.user.create({
-        data: {
-          email: normalizedEmail,
-          passwordHash,
-          name: name.trim(),
-          role,
-        },
-      });
+    let user;
 
-      if (role === "farmer") {
+    if (existing) {
+      if (role !== "farmer" || existing.role !== "customer") {
+        return NextResponse.json(
+          { error: "An account with this email already exists." },
+          { status: 409 }
+        );
+      }
+
+      const orderCount = await prisma.order.count({ where: { userId: existing.id } });
+      if (orderCount > 0) {
+        return NextResponse.json(
+          {
+            error:
+              "This email has customer orders on file. Contact hello@local-harvests.co.uk for help.",
+          },
+          { status: 409 }
+        );
+      }
+
+      user = await prisma.$transaction(async (tx) => {
+        await tx.order.updateMany({
+          where: { userId: existing.id },
+          data: { userId: null },
+        });
+
+        await tx.user.update({
+          where: { id: existing.id },
+          data: {
+            passwordHash,
+            name: name.trim(),
+            role: "farmer",
+          },
+        });
+
         await createFarmerFarm(
           {
-            ownerId: created.id,
+            ownerId: existing.id,
             name: farmName!,
             location: location!,
           },
           tx
         );
-      }
 
-      return tx.user.findUniqueOrThrow({
-        where: { id: created.id },
-        include: { farm: true },
+        return tx.user.findUniqueOrThrow({
+          where: { id: existing.id },
+          include: { farm: true },
+        });
       });
-    });
+    } else {
+      user = await prisma.$transaction(async (tx) => {
+        const created = await tx.user.create({
+          data: {
+            email: normalizedEmail,
+            passwordHash,
+            name: name.trim(),
+            role,
+          },
+        });
+
+        if (role === "farmer") {
+          await createFarmerFarm(
+            {
+              ownerId: created.id,
+              name: farmName!,
+              location: location!,
+            },
+            tx
+          );
+        }
+
+        return tx.user.findUniqueOrThrow({
+          where: { id: created.id },
+          include: { farm: true },
+        });
+      });
+    }
 
     const sessionUser = {
       id: user.id,
