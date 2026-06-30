@@ -41,10 +41,23 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ email, password, role }),
       }),
-    register: (email: string, password: string, name: string, role: UserRole) =>
+    register: (
+      email: string,
+      password: string,
+      name: string,
+      role: UserRole,
+      farmDetails?: { farmName: string; location: string }
+    ) =>
       request<{ user: PublicUser }>("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify({ email, password, name, role }),
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          role,
+          farmName: farmDetails?.farmName,
+          location: farmDetails?.location,
+        }),
       }),
     logout: () => request<{ success: boolean }>("/api/auth/logout", { method: "POST" }),
   },
@@ -113,6 +126,28 @@ export const api = {
       request<{ success: boolean }>(`/api/products/${id}`, { method: "DELETE" }),
   },
   farmer: {
+    farm: {
+      get: () => request<{ farm: Farm | null }>("/api/farmer/farm"),
+      create: (data: { farmName: string; location: string }) =>
+        request<{ farm: Farm; user: PublicUser }>("/api/farmer/farm", {
+          method: "POST",
+          body: JSON.stringify(data),
+        }),
+    },
+    onboarding: {
+      get: () =>
+        request<{
+          onboarding: {
+            hasFarm: boolean;
+            profileComplete: boolean;
+            hasCategory: boolean;
+            hasProduct: boolean;
+            isComplete: boolean;
+            productCount: number;
+            categoryCount: number;
+          };
+        }>("/api/farmer/onboarding"),
+    },
     orders: {
       list: () =>
         request<{

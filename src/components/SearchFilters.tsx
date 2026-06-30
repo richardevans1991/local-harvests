@@ -1,10 +1,9 @@
 "use client";
 
-import { LOCATIONS } from "@/types";
-
 interface SearchFiltersProps {
   search: string;
   location: string;
+  locations: string[];
   onSearchChange: (value: string) => void;
   onLocationChange: (value: string) => void;
 }
@@ -12,6 +11,7 @@ interface SearchFiltersProps {
 export default function SearchFilters({
   search,
   location,
+  locations,
   onSearchChange,
   onLocationChange,
 }: SearchFiltersProps) {
@@ -34,7 +34,7 @@ export default function SearchFilters({
         onChange={(e) => onLocationChange(e.target.value)}
         className="home-glass rounded-xl border border-harvest-tan/70 px-4 py-3 text-harvest-brown shadow-sm outline-none transition focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20 sm:w-52"
       >
-        {LOCATIONS.map((loc) => (
+        {locations.map((loc) => (
           <option key={loc} value={loc}>
             {loc}
           </option>

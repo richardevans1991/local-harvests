@@ -63,14 +63,6 @@ export default function AuthForm({ mode, role }: AuthFormProps) {
           : "Shop fresh produce from farms in your area."}
       </p>
 
-      {isFarmer && mode === "login" && (
-        <div className="mt-4 rounded-lg bg-harvest-cream p-3 text-xs text-harvest-brown">
-          <p className="font-medium">Demo farmer accounts:</p>
-          <p className="mt-1">farmer@greenmeadow.com / farmer123</p>
-          <p>farmer@oakhill.com / farmer123</p>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {mode === "register" && (
           <div>

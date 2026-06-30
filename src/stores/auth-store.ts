@@ -12,7 +12,8 @@ interface AuthState {
     email: string,
     password: string,
     name: string,
-    role: UserRole
+    role: UserRole,
+    farmDetails?: { farmName: string; location: string }
   ) => Promise<{ success: boolean; error?: string }>;
   login: (
     email: string,
@@ -35,9 +36,9 @@ export const useAuthStore = create<AuthState>()((set) => ({
     }
   },
 
-  register: async (email, password, name, role) => {
+  register: async (email, password, name, role, farmDetails) => {
     try {
-      const { user } = await api.auth.register(email, password, name, role);
+      const { user } = await api.auth.register(email, password, name, role, farmDetails);
       set({ currentUser: user });
       return { success: true };
     } catch (error) {

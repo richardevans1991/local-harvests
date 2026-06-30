@@ -20,6 +20,11 @@ export default function FarmDirectory() {
       .finally(() => setLoading(false));
   }, []);
 
+  const locationOptions = useMemo(() => {
+    const unique = Array.from(new Set(farms.map((farm) => farm.location).filter(Boolean))).sort();
+    return ["All Locations", ...unique];
+  }, [farms]);
+
   const filteredFarms = useMemo(() => {
     const query = search.trim().toLowerCase();
     return farms.filter((farm) => {
@@ -39,6 +44,7 @@ export default function FarmDirectory() {
       <SearchFilters
         search={search}
         location={location}
+        locations={locationOptions}
         onSearchChange={setSearch}
         onLocationChange={setLocation}
       />

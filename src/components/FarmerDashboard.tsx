@@ -1,8 +1,10 @@
 "use client";
 
 import FarmerEarningsPanel from "@/components/FarmerEarningsPanel";
+import FarmerOnboardingChecklist from "@/components/FarmerOnboardingChecklist";
 import FarmerOrdersPanel from "@/components/FarmerOrdersPanel";
 import FarmerSubscriptionBanner from "@/components/FarmerSubscriptionBanner";
+import type { FarmerOnboardingStatus } from "@/lib/farmer-onboarding";
 import SafeImage from "@/components/SafeImage";
 import type { FarmerSubscriptionView } from "@/lib/farmer-subscription";
 import { isValidImageUrl } from "@/lib/image-utils";
@@ -24,6 +26,7 @@ export default function FarmerDashboard() {
   const [loading, setLoading] = useState(true);
 
   const [farmName, setFarmName] = useState("");
+  const [farmLocation, setFarmLocation] = useState("");
   const [farmDescription, setFarmDescription] = useState("");
   const [farmShortDescription, setFarmShortDescription] = useState("");
   const [farmBanner, setFarmBanner] = useState("");
@@ -51,6 +54,7 @@ export default function FarmerDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [categorySubmitting, setCategorySubmitting] = useState(false);
   const [subscription, setSubscription] = useState<FarmerSubscriptionView | null>(null);
+  const [onboarding, setOnboarding] = useState<FarmerOnboardingStatus | null>(null);
 
   const categoryNames = useMemo(() => categories.map((c) => c.name).sort(), [categories]);
   const canEdit = subscription?.canManageShop ?? false;
@@ -66,6 +70,7 @@ export default function FarmerDashboard() {
       setProductCategory(loadedCategories[0].name);
     }
     setFarmName(farm.name);
+    setFarmLocation(farm.location);
     setFarmDescription(farm.description);
     setFarmShortDescription(farm.shortDescription);
     setFarmBanner(farm.banner);
@@ -93,10 +98,12 @@ export default function FarmerDashboard() {
       .catch(() => setError("Failed to load subscription details."));
 
     if (!farmId) {
-      setLoading(false);
+      router.replace("/farmer/setup");
       return;
     }
-    loadFarmData(farmId)
+
+    Promise.all([loadFarmData(farmId), api.farmer.onboarding.get()])
+      .then(([, { onboarding: status }]) => setOnboarding(status))
       .catch(() => setError("Failed to load farm data."))
       .finally(() => setLoading(false));
   }, [initialized, currentUser, farmId, router]);
@@ -114,16 +121,7 @@ export default function FarmerDashboard() {
   }
 
   if (!farmId || !farm) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h1 className="font-serif text-2xl font-bold text-harvest-green">
-          No farm linked to your account
-        </h1>
-        <p className="mt-2 text-harvest-brown">
-          Use a demo farmer account to manage an existing store.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   const handleSaveProfile = async () => {
@@ -136,6 +134,7 @@ export default function FarmerDashboard() {
     try {
       const { farm: updated } = await api.farms.update(farmId, {
         name: farmName,
+        location: farmLocation.trim(),
         description: farmDescription,
         shortDescription: farmShortDescription,
         banner: farmBanner,
@@ -362,6 +361,8 @@ export default function FarmerDashboard() {
         </div>
       )}
 
+      {onboarding && <FarmerOnboardingChecklist onboarding={onboarding} />}
+
       <FarmerOrdersPanel />
 
       <FarmerEarningsPanel />
@@ -394,6 +395,11 @@ export default function FarmerDashboard() {
           </h2>
           <div className="mt-4 space-y-4">
             <Field label="Farm name" value={farmName} onChange={setFarmName} />
+            <Field
+              label="Town or area"
+              value={farmLocation}
+              onChange={setFarmLocation}
+            />
             <Field
               label="Short description"
               value={farmShortDescription}

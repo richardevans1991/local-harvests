@@ -24,9 +24,11 @@ export default function FarmCard({ farm }: FarmCardProps) {
           <h3 className="font-serif text-lg font-semibold text-harvest-green group-hover:text-harvest-green-dark">
             {farm.name}
           </h3>
-          <span className="shrink-0 rounded-full bg-harvest-wheat/30 px-2.5 py-0.5 text-xs font-bold text-harvest-brown">
-            {farm.distance} mi
-          </span>
+          {farm.distance > 0 && (
+            <span className="shrink-0 rounded-full bg-harvest-wheat/30 px-2.5 py-0.5 text-xs font-bold text-harvest-brown">
+              {farm.distance} mi
+            </span>
+          )}
         </div>
         <p className="mb-2 text-sm leading-relaxed text-harvest-brown/85">
           {farm.shortDescription}

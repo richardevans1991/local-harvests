@@ -46,7 +46,7 @@ export default function FarmerPlans() {
     try {
       const { subscription: sub } = await api.farmer.subscription.start(tier);
       setSubscription(sub);
-      router.push("/farmer/dashboard");
+      router.push("/farmer/onboarding");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start your plan.");
     } finally {
