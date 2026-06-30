@@ -68,7 +68,7 @@ export default function FarmDirectory() {
   }, [farms, search, location]);
 
   return (
-    <section className="py-10">
+    <section id="farms" className="scroll-mt-24 py-10">
       <SearchFilters
         search={search}
         postcode={postcodeInput}

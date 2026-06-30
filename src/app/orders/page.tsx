@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import CustomerOrdersPanel from "@/components/CustomerOrdersPanel";
 import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
@@ -14,7 +15,11 @@ export default function OrdersPage() {
             order with your email and order reference.
           </p>
           <div className="mt-8">
-            <CustomerOrdersPanel />
+            <Suspense
+              fallback={<div className="h-40 animate-pulse rounded-2xl bg-harvest-tan/30" />}
+            >
+              <CustomerOrdersPanel />
+            </Suspense>
           </div>
         </div>
       </main>

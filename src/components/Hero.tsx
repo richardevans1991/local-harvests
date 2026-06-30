@@ -23,6 +23,21 @@ export default function Hero() {
           Discover local farm shops, browse seasonal produce, and support the
           growers in your community.
         </p>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="#farms"
+            className="rounded-full bg-harvest-cream px-7 py-3 text-sm font-semibold text-harvest-brown shadow-md transition hover:bg-white"
+          >
+            Browse farm shops
+          </a>
+          <a
+            href="/for-farmers"
+            className="rounded-full border border-harvest-cream/50 bg-harvest-cream/10 px-7 py-3 text-sm font-semibold text-harvest-cream backdrop-blur-sm transition hover:border-harvest-cream hover:bg-harvest-cream/20"
+          >
+            List your farm
+          </a>
+        </div>
       </div>
     </section>
   );

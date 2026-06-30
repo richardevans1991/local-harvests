@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { displayOrderRef } from "@/lib/order-ref";
 import { api } from "@/lib/api-client";
 import { formatMoney } from "@/lib/format-money";
 import { useAuthStore } from "@/stores/auth-store";
@@ -44,7 +46,7 @@ function OrderList({ orders }: { orders: CustomerOrder[] }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-harvest-brown/60">
-                Order #{order.orderId.slice(-8).toUpperCase()}
+                Order {displayOrderRef(order.orderId)}
               </p>
               <p className="mt-1 font-serif text-lg font-semibold text-harvest-green">
                 {formatMoney(order.total)}
@@ -82,6 +84,7 @@ function OrderList({ orders }: { orders: CustomerOrder[] }) {
 }
 
 export default function CustomerOrdersPanel() {
+  const searchParams = useSearchParams();
   const initialized = useAuthStore((s) => s.initialized);
   const currentUser = useAuthStore((s) => s.currentUser);
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
@@ -91,6 +94,7 @@ export default function CustomerOrdersPanel() {
   const [guestRef, setGuestRef] = useState("");
   const [guestLoading, setGuestLoading] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
+  const prefilledLookup = useRef(false);
 
   useEffect(() => {
     if (!initialized) return;
@@ -108,6 +112,31 @@ export default function CustomerOrdersPanel() {
       )
       .finally(() => setLoading(false));
   }, [initialized, currentUser]);
+
+  useEffect(() => {
+    if (!initialized || prefilledLookup.current) return;
+    if (currentUser?.role === "customer") return;
+
+    const email = searchParams.get("email")?.trim() ?? "";
+    const ref = searchParams.get("ref")?.trim().toUpperCase().replace(/[^A-Z0-9]/g, "") ?? "";
+    if (!email || !ref) return;
+
+    prefilledLookup.current = true;
+    setGuestEmail(email);
+    setGuestRef(ref);
+    setGuestMode(true);
+    setGuestLoading(true);
+    setError("");
+
+    api.customer.orders
+      .lookup(email, ref)
+      .then(({ orders: found }) => setOrders(found))
+      .catch((err) => {
+        setOrders([]);
+        setError(err instanceof Error ? err.message : "Failed to look up order.");
+      })
+      .finally(() => setGuestLoading(false));
+  }, [initialized, currentUser, searchParams]);
 
   const handleGuestLookup = async (e: React.FormEvent) => {
     e.preventDefault();

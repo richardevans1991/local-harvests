@@ -54,7 +54,12 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
           <p className="mt-2 max-w-2xl text-harvest-parchment/95">{farm.description}</p>
           <p className="mt-2 text-sm text-harvest-wheat">
             📍 {farm.location}
-            {farm.distance > 0 && ` · ${farm.distance} miles away`}
+            {farm.postcode && ` · ${farm.postcode}`}
+            {farm.distanceMiles != null && farm.distanceMiles > 0
+              ? ` · ${farm.distanceMiles} miles away`
+              : farm.distance > 0
+                ? ` · ${farm.distance} miles away`
+                : ""}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {farm.shopOpen === false && (

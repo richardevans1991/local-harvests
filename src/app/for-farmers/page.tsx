@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
+import { getShowcaseFarm } from "@/lib/showcase-farm";
 import Link from "next/link";
 
 const benefits = [
@@ -10,7 +11,9 @@ const benefits = [
   "30-day free trial — plans from £19/month",
 ];
 
-export default function ForFarmersPage() {
+export default async function ForFarmersPage() {
+  const showcaseFarm = await getShowcaseFarm();
+
   return (
     <>
       <Header />
@@ -55,6 +58,14 @@ export default function ForFarmersPage() {
             >
               View plans
             </Link>
+            {showcaseFarm && (
+              <Link
+                href={`/farms/${showcaseFarm.id}`}
+                className="rounded-full border border-harvest-tan bg-white px-6 py-3 text-sm font-semibold text-harvest-brown hover:border-harvest-green hover:text-harvest-green"
+              >
+                See a live example — {showcaseFarm.name}
+              </Link>
+            )}
           </div>
 
           <p className="mt-8 text-sm text-harvest-brown/70">
