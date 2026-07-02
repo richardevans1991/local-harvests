@@ -3,6 +3,8 @@ interface SendEmailOptions {
   subject: string;
   html: string;
   text: string;
+  from?: string;
+  replyTo?: string;
 }
 
 export function isEmailConfigured() {
@@ -15,10 +17,28 @@ export function getEmailFrom() {
   );
 }
 
-export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+  from,
+  replyTo,
+}: SendEmailOptions) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     return false;
+  }
+
+  const payload: Record<string, unknown> = {
+    from: from?.trim() || getEmailFrom(),
+    to: [to],
+    subject,
+    html,
+    text,
+  };
+  if (replyTo?.trim()) {
+    payload.reply_to = replyTo.trim();
   }
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -27,13 +47,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      from: getEmailFrom(),
-      to: [to],
-      subject,
-      html,
-      text,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
