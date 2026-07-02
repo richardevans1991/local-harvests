@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
+import { deliveryFeeForFarm } from "@/lib/delivery-fee";
 import {
   farmerShareFromLine,
   isEarningOrderStatus,
@@ -38,12 +39,15 @@ export async function GET() {
             customerName: true,
             pickupDate: true,
             fulfillmentMethod: true,
+            farmDeliveryFees: true,
             createdAt: true,
           },
         },
       },
       orderBy: { order: { createdAt: "desc" } },
     });
+
+    const deliveryFeeByOrder = new Map<string, number>();
 
     const orderMap = new Map<
       string,
@@ -68,6 +72,14 @@ export async function GET() {
     let paidOrderCount = 0;
 
     for (const item of items) {
+      if (!deliveryFeeByOrder.has(item.order.id)) {
+        const fee =
+          item.order.fulfillmentMethod === "delivery"
+            ? deliveryFeeForFarm(item.order.farmDeliveryFees, farm.id)
+            : 0;
+        deliveryFeeByOrder.set(item.order.id, fee);
+      }
+
       const lineTotal = Math.round(item.price * item.quantity * 100) / 100;
       const { platformFee, farmerEarnings } = farmerShareFromLine(
         lineTotal,
@@ -106,6 +118,26 @@ export async function GET() {
         }
         totalSales = Math.round((totalSales + lineTotal) * 100) / 100;
         totalPlatformFees = Math.round((totalPlatformFees + platformFee) * 100) / 100;
+      }
+    }
+
+    for (const [orderId, orderSummary] of orderMap.entries()) {
+      const deliveryEarnings = deliveryFeeByOrder.get(orderId) ?? 0;
+      if (deliveryEarnings <= 0) continue;
+
+      orderSummary.salesTotal =
+        Math.round((orderSummary.salesTotal + deliveryEarnings) * 100) / 100;
+      orderSummary.farmerEarnings =
+        Math.round((orderSummary.farmerEarnings + deliveryEarnings) * 100) / 100;
+
+      if (isEarningOrderStatus(orderSummary.status)) {
+        if (isPayoutEligibleStatus(orderSummary.status)) {
+          availableForPayout =
+            Math.round((availableForPayout + deliveryEarnings) * 100) / 100;
+        } else if (isPendingPayoutStatus(orderSummary.status)) {
+          pendingPayout = Math.round((pendingPayout + deliveryEarnings) * 100) / 100;
+        }
+        totalSales = Math.round((totalSales + deliveryEarnings) * 100) / 100;
       }
     }
 

@@ -114,9 +114,9 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span>{formatMoney(total)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Pickup</span>
-                    <span className="text-harvest-green">Free</span>
+                  <div className="flex justify-between text-harvest-brown/70">
+                    <span>Delivery fee</span>
+                    <span>Calculated at checkout</span>
                   </div>
                 </div>
                 <div className="mt-4 flex justify-between border-t border-harvest-tan/40 pt-4 font-semibold text-harvest-brown">

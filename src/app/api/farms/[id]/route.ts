@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ensureFarmCategories } from "@/lib/categories";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeDeliveryFee } from "@/lib/delivery-fee";
 import { resolveFarmCoordinates } from "@/lib/uk-geography";
 
 interface RouteContext {
@@ -70,6 +71,10 @@ export async function PATCH(request: Request, context: RouteContext) {
             longitude: farm.longitude,
           };
 
+    const nextDeliveryFee = nextDelivery
+      ? normalizeDeliveryFee(body.deliveryFee ?? farm.deliveryFee)
+      : 0;
+
     const updated = await prisma.farm.update({
       where: { id },
       data: {
@@ -85,6 +90,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         distance: body.distance,
         offersPickup: body.offersPickup,
         offersDelivery: body.offersDelivery,
+        deliveryFee: nextDeliveryFee,
         shopOpen: body.shopOpen,
         deliveryNotes: body.deliveryNotes,
       },

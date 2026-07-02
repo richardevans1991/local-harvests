@@ -24,6 +24,7 @@ export async function POST(request: Request) {
         offersPickup: true,
         offersDelivery: true,
         deliveryNotes: true,
+        deliveryFee: true,
       },
     });
 

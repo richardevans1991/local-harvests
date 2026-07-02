@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { getAppUrl } from "@/lib/app-url";
 import { getSessionUser } from "@/lib/auth";
 import { validateFulfillmentChoice, type FulfillmentMethod } from "@/lib/fulfillment";
-import { calculateCheckoutFees } from "@/lib/order-fees";
+import {
+  calculateCheckoutTotals,
+  serializeFarmDeliveryFees,
+} from "@/lib/order-fees";
 import { prisma } from "@/lib/prisma";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 
@@ -45,7 +48,14 @@ export async function POST(request: Request) {
     const farmIds = Array.from(new Set(items.map((item) => item.farmId)));
     const farms = await prisma.farm.findMany({
       where: { id: { in: farmIds } },
-      select: { id: true, name: true, offersPickup: true, offersDelivery: true, shopOpen: true },
+      select: {
+        id: true,
+        name: true,
+        offersPickup: true,
+        offersDelivery: true,
+        deliveryFee: true,
+        shopOpen: true,
+      },
     });
 
     const closedFarms = farms.filter((farm) => !farm.shopOpen);
@@ -71,7 +81,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Delivery address is required." }, { status: 400 });
     }
 
-    const { subtotal, platformFee, farmerTotal } = await calculateCheckoutFees(items);
+    const { subtotal, deliveryFee, farmDeliveryFees, platformFee, farmerTotal, total } =
+      await calculateCheckoutTotals(items, fulfillmentMethod);
     const user = await getSessionUser();
 
     const order = await prisma.order.create({
@@ -84,7 +95,9 @@ export async function POST(request: Request) {
         deliveryAddress:
           fulfillmentMethod === "delivery" ? deliveryAddress?.trim() ?? null : null,
         notes: notes || null,
-        total: subtotal,
+        deliveryFee,
+        farmDeliveryFees: serializeFarmDeliveryFees(farmDeliveryFees),
+        total,
         platformFee,
         farmerTotal,
         status: "pending",
@@ -112,17 +125,31 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: email,
-      line_items: items.map((item) => ({
-        price_data: {
-          currency: "gbp",
-          product_data: {
-            name: item.name,
-            images: item.image ? [item.image] : undefined,
+      line_items: [
+        ...items.map((item) => ({
+          price_data: {
+            currency: "gbp",
+            product_data: {
+              name: item.name,
+              images: item.image ? [item.image] : undefined,
+            },
+            unit_amount: Math.round(item.price * 100),
           },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      })),
+          quantity: item.quantity,
+        })),
+        ...farmDeliveryFees
+          .filter((line) => line.fee > 0)
+          .map((line) => ({
+            price_data: {
+              currency: "gbp",
+              product_data: {
+                name: `Delivery — ${line.farmName}`,
+              },
+              unit_amount: Math.round(line.fee * 100),
+            },
+            quantity: 1,
+          })),
+      ],
       metadata: {
         orderId: order.id,
       },

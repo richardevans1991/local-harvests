@@ -41,6 +41,7 @@ function CheckoutContent() {
   const [pickupAvailable, setPickupAvailable] = useState(true);
   const [deliveryAvailable, setDeliveryAvailable] = useState(false);
   const [blockingDeliveryFarms, setBlockingDeliveryFarms] = useState<string[]>([]);
+  const [totalDeliveryFee, setTotalDeliveryFee] = useState(0);
   const cancelled = searchParams.get("cancelled");
 
   useEffect(() => {
@@ -67,6 +68,7 @@ function CheckoutContent() {
         setPickupAvailable(options.pickupAvailable);
         setDeliveryAvailable(options.deliveryAvailable);
         setBlockingDeliveryFarms(options.blockingDeliveryFarms);
+        setTotalDeliveryFee(options.totalDeliveryFee ?? 0);
         setFulfillmentMethod((current) => {
           if (current === "delivery" && options.deliveryAvailable) return "delivery";
           if (options.pickupAvailable) return "pickup";
@@ -99,6 +101,9 @@ function CheckoutContent() {
   const showMethodChoice = pickupAvailable && deliveryAvailable;
   const dateLabel =
     fulfillmentMethod === "delivery" ? "Preferred delivery date" : "Pickup date";
+  const deliveryCharge =
+    fulfillmentMethod === "delivery" ? totalDeliveryFee : 0;
+  const orderTotal = total + deliveryCharge;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,7 +222,11 @@ function CheckoutContent() {
                       selected={fulfillmentMethod === "delivery"}
                       onSelect={() => setFulfillmentMethod("delivery")}
                       title="Delivery"
-                      description="Delivered to your address"
+                      description={
+                        totalDeliveryFee > 0
+                          ? `Delivered to your address — ${formatMoney(totalDeliveryFee)} fee`
+                          : "Delivered to your address — free"
+                      }
                     />
                   </div>
                 ) : !optionsLoading ? (
@@ -321,9 +330,21 @@ function CheckoutContent() {
                   ? "Stripe is not configured — confirm your order and pay on delivery."
                   : "Stripe is not configured — confirm your order and pay at pickup."}
             </p>
+            <div className="mt-4 space-y-2 text-sm text-harvest-brown">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatMoney(total)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span className={deliveryCharge > 0 ? "" : "text-harvest-green"}>
+                  {deliveryCharge > 0 ? formatMoney(deliveryCharge) : "Free"}
+                </span>
+              </div>
+            </div>
             <div className="mt-4 flex justify-between border-t border-harvest-tan/40 pt-4 font-semibold text-harvest-brown">
               <span>Total</span>
-              <span>{formatMoney(total)}</span>
+              <span>{formatMoney(orderTotal)}</span>
             </div>
 
             {error && (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import SafeImage from "@/components/SafeImage";
+import { formatMoney } from "@/lib/format-money";
 import type { Farm, FarmCategory, Product } from "@/types";
 
 interface FarmStoreProps {
@@ -74,7 +75,9 @@ export default function FarmStore({ farm, products, categories = [] }: FarmStore
             )}
             {farm.offersDelivery && (
               <span className="rounded-full bg-harvest-wheat/90 px-3 py-1 text-xs font-semibold text-harvest-brown">
-                Delivery available
+                {(farm.deliveryFee ?? 0) > 0
+                  ? `Delivery ${formatMoney(farm.deliveryFee ?? 0)}`
+                  : "Free delivery"}
               </span>
             )}
           </div>

@@ -35,6 +35,7 @@ export default function FarmerDashboard() {
   const [farmImage, setFarmImage] = useState("");
   const [offersPickup, setOffersPickup] = useState(true);
   const [offersDelivery, setOffersDelivery] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState("0");
   const [shopOpen, setShopOpen] = useState(true);
   const [deliveryNotes, setDeliveryNotes] = useState("");
 
@@ -81,6 +82,7 @@ export default function FarmerDashboard() {
     setFarmImage(farm.image);
     setOffersPickup(farm.offersPickup);
     setOffersDelivery(farm.offersDelivery);
+    setDeliveryFee(String(farm.deliveryFee ?? 0));
     setShopOpen(farm.shopOpen !== false);
     setDeliveryNotes(farm.deliveryNotes ?? "");
   };
@@ -147,6 +149,7 @@ export default function FarmerDashboard() {
         image: farmImage,
         offersPickup,
         offersDelivery,
+        deliveryFee: offersDelivery ? Number(deliveryFee) || 0 : 0,
         shopOpen,
         deliveryNotes: offersDelivery ? deliveryNotes.trim() || null : null,
       });
@@ -519,7 +522,15 @@ export default function FarmerDashboard() {
                 </label>
               </div>
               {offersDelivery && (
-                <div className="mt-4">
+                <div className="mt-4 space-y-4">
+                  <Field
+                    label="Delivery fee (£)"
+                    value={deliveryFee}
+                    onChange={setDeliveryFee}
+                    type="number"
+                    placeholder="0.00"
+                    hint="Charged once per order when a customer chooses delivery. Set to 0 for free delivery."
+                  />
                   <Field
                     label="Delivery notes (optional)"
                     value={deliveryNotes}
@@ -794,6 +805,7 @@ function Field({
   type = "text",
   required,
   placeholder,
+  hint,
 }: {
   label: string;
   value: string;
@@ -802,6 +814,7 @@ function Field({
   type?: string;
   required?: boolean;
   placeholder?: string;
+  hint?: string;
 }) {
   const className =
     "w-full rounded-lg border border-harvest-tan px-4 py-2.5 outline-none focus:border-harvest-green focus:ring-2 focus:ring-harvest-green/20";
@@ -811,6 +824,7 @@ function Field({
       <label className="mb-1 block text-sm font-medium text-harvest-brown">
         {label}
       </label>
+      {hint && <p className="mb-2 text-xs text-harvest-brown/70">{hint}</p>}
       {multiline ? (
         <textarea
           rows={3}
@@ -828,7 +842,7 @@ function Field({
           placeholder={placeholder}
           className={className}
           step={type === "number" ? "0.01" : undefined}
-          min={type === "number" ? "0.01" : undefined}
+          min={type === "number" ? "0" : undefined}
         />
       )}
     </div>

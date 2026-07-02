@@ -294,7 +294,11 @@ export const api = {
         pickupAvailable: boolean;
         deliveryAvailable: boolean;
         blockingDeliveryFarms: string[];
-        farms: Pick<Farm, "id" | "name" | "offersPickup" | "offersDelivery" | "deliveryNotes">[];
+        totalDeliveryFee: number;
+        farms: Pick<
+          Farm,
+          "id" | "name" | "offersPickup" | "offersDelivery" | "deliveryNotes" | "deliveryFee"
+        >[];
       }>("/api/checkout/fulfillment-options", {
         method: "POST",
         body: JSON.stringify({ farmIds }),

@@ -1,4 +1,5 @@
 import { getAppUrl } from "@/lib/app-url";
+import { deliveryFeeForFarm } from "@/lib/delivery-fee";
 import { sendEmail, isEmailConfigured } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
@@ -25,6 +26,7 @@ function buildFarmerOrderEmail({
   notes,
   items,
   farmSubtotal,
+  deliveryFee,
   dashboardUrl,
 }: {
   farmName: string;
@@ -37,6 +39,7 @@ function buildFarmerOrderEmail({
   notes: string | null;
   items: { name: string; quantity: number; price: number }[];
   farmSubtotal: number;
+  deliveryFee: number;
   dashboardUrl: string;
 }) {
   const isDelivery = fulfillmentMethod === "delivery";
@@ -80,6 +83,10 @@ function buildFarmerOrderEmail({
     itemLines,
     "",
     `Subtotal from your shop: ${formatMoney(farmSubtotal)}`,
+    deliveryFee > 0 ? `Delivery fee: ${formatMoney(deliveryFee)}` : null,
+    deliveryFee > 0
+      ? `Total from your shop (incl. delivery): ${formatMoney(farmSubtotal + deliveryFee)}`
+      : null,
     "",
     `Manage this order in your dashboard: ${dashboardUrl}`,
     "",
@@ -131,6 +138,16 @@ function buildFarmerOrderEmail({
           <p style="margin:16px 0 0;text-align:right;font-size:16px;font-weight:bold;color:#5c6b44;">
             Subtotal: ${formatMoney(farmSubtotal)}
           </p>
+          ${
+            deliveryFee > 0
+              ? `<p style="margin:8px 0 0;text-align:right;font-size:14px;color:#4a3728;">
+                  Delivery fee: ${formatMoney(deliveryFee)}
+                </p>
+                <p style="margin:8px 0 0;text-align:right;font-size:16px;font-weight:bold;color:#5c6b44;">
+                  Total: ${formatMoney(farmSubtotal + deliveryFee)}
+                </p>`
+              : ""
+          }
 
           <div style="margin-top:24px;text-align:center;">
             <a href="${dashboardUrl}" style="display:inline-block;background:#8b9a6b;color:#f7f3eb;text-decoration:none;padding:12px 24px;border-radius:999px;font-size:14px;font-weight:600;">
@@ -157,6 +174,8 @@ function buildCustomerOrderEmail({
   deliveryAddress,
   notes,
   items,
+  productSubtotal,
+  deliveryFee,
   total,
   marketplaceUrl,
 }: {
@@ -167,6 +186,8 @@ function buildCustomerOrderEmail({
   deliveryAddress: string | null;
   notes: string | null;
   items: { name: string; farmName: string; quantity: number; price: number }[];
+  productSubtotal: number;
+  deliveryFee: number;
   total: number;
   marketplaceUrl: string;
 }) {
@@ -217,6 +238,8 @@ function buildCustomerOrderEmail({
     "Your items:",
     itemLines,
     "",
+    `Subtotal: ${formatMoney(productSubtotal)}`,
+    deliveryFee > 0 ? `Delivery: ${formatMoney(deliveryFee)}` : null,
     `Total paid: ${formatMoney(total)}`,
     "",
     `The farm shop(s) will prepare your order. If you have questions, reply to this email or contact the farm directly.`,
@@ -267,7 +290,17 @@ function buildCustomerOrderEmail({
             <tbody>${itemRows}</tbody>
           </table>
 
-          <p style="margin:16px 0 0;text-align:right;font-size:16px;font-weight:bold;color:#5c6b44;">
+          <p style="margin:16px 0 0;text-align:right;font-size:14px;color:#4a3728;">
+            Subtotal: ${formatMoney(productSubtotal)}
+          </p>
+          ${
+            deliveryFee > 0
+              ? `<p style="margin:8px 0 0;text-align:right;font-size:14px;color:#4a3728;">
+                  Delivery: ${formatMoney(deliveryFee)}
+                </p>`
+              : ""
+          }
+          <p style="margin:8px 0 0;text-align:right;font-size:16px;font-weight:bold;color:#5c6b44;">
             Total: ${formatMoney(total)}
           </p>
 
@@ -481,6 +514,11 @@ export async function notifyOrderParties(orderId: string) {
   const dashboardUrl = `${appUrl}/farmer/dashboard`;
   const marketplaceUrl = appUrl;
 
+  const productSubtotal = order.items.reduce(
+    (sum, item) => sum + Math.round(item.price * item.quantity * 100) / 100,
+    0
+  );
+
   const customerEmail = buildCustomerOrderEmail({
     customerName: order.customerName,
     orderId: order.id,
@@ -494,6 +532,8 @@ export async function notifyOrderParties(orderId: string) {
       quantity: item.quantity,
       price: item.price,
     })),
+    productSubtotal: Math.round(productSubtotal * 100) / 100,
+    deliveryFee: order.deliveryFee ?? 0,
     total: order.total,
     marketplaceUrl,
   });
@@ -506,6 +546,8 @@ export async function notifyOrderParties(orderId: string) {
       (sum, item) => sum + Math.round(item.price * item.quantity * 100) / 100,
       0
     );
+
+    const farmDeliveryFee = deliveryFeeForFarm(order.farmDeliveryFees, farm.id);
 
     const email = buildFarmerOrderEmail({
       farmName: farm.name,
@@ -522,6 +564,7 @@ export async function notifyOrderParties(orderId: string) {
         price: item.price,
       })),
       farmSubtotal: Math.round(farmSubtotal * 100) / 100,
+      deliveryFee: farmDeliveryFee,
       dashboardUrl,
     });
 
