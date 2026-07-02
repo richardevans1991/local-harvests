@@ -9,15 +9,17 @@
  *   --dry-run   Print subject/body without sending
  *
  * Requires RESEND_API_KEY in .env (same key as production).
- * Domain local-harvests.co.uk must be verified in Resend so richardevans@ can send.
+ * Sends HTML (same branded layout as order emails). Do not paste plain text into Gmail.
+ * Uses orders@ mailbox (same as site) with reply-to richardevans@local-harvests.co.uk.
  */
 
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { sendEmail, isEmailConfigured } from "../src/lib/email";
 import {
   buildFarmOutreachEmail,
-  FARM_OUTREACH_FROM,
+  FARM_OUTREACH_REPLY_TO,
+  getFarmOutreachFrom,
 } from "../src/lib/farm-outreach-email";
 
 function loadEnvFile() {
@@ -54,6 +56,7 @@ const farmName = readArg("--farm");
 const recipientName = readArg("--name");
 const personalLine = readArg("--personal");
 const dryRun = process.argv.includes("--dry-run");
+const preview = process.argv.includes("--preview");
 
 if (!to) {
   console.error(
@@ -68,8 +71,17 @@ const { subject, text, html } = buildFarmOutreachEmail({
   personalLine,
 });
 
+if (preview) {
+  const previewPath = resolve(process.cwd(), "outreach-email-preview.html");
+  writeFileSync(previewPath, html, "utf8");
+  console.log(`Wrote HTML preview: ${previewPath}`);
+  console.log("Open that file in your browser — it should match order email styling.");
+  process.exit(0);
+}
+
 if (dryRun) {
-  console.log("From:", FARM_OUTREACH_FROM);
+  console.log("From:", getFarmOutreachFrom());
+  console.log("Reply-To:", FARM_OUTREACH_REPLY_TO);
   console.log("To:", to);
   console.log("Subject:", subject);
   console.log("\n--- TEXT ---\n");
@@ -87,8 +99,8 @@ sendEmail({
   subject,
   html,
   text,
-  from: FARM_OUTREACH_FROM,
-  replyTo: "richardevans@local-harvests.co.uk",
+  from: getFarmOutreachFrom(),
+  replyTo: FARM_OUTREACH_REPLY_TO,
 })
   .then((sent) => {
     if (!sent) {

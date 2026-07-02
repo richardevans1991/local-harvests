@@ -1,4 +1,5 @@
 import { getAppUrl } from "@/lib/app-url";
+import { getEmailFrom } from "@/lib/email";
 import {
   brandedButton,
   brandedInfoBox,
@@ -63,12 +64,12 @@ export function buildFarmOutreachEmail({
     .join("\n");
 
   const bodyHtml = [
-    `<p style="margin:0 0 16px;">${escapeHtml(greeting)}</p>`,
+    `<p style="margin:0 0 16px;line-height:1.6;">${escapeHtml(greeting)}</p>`,
     personalLine
-      ? `<p style="margin:0 0 16px;">${escapeHtml(personalLine)}</p>`
+      ? `<p style="margin:0 0 16px;line-height:1.6;">${escapeHtml(personalLine)}</p>`
       : "",
-    `<p style="margin:0 0 16px;">I'm <strong>Richard Evans</strong>, and I run <strong>Local Harvest</strong> — a service that helps UK farm shops sell direct to customers in their area, online.</p>`,
-    `<p style="margin:0 0 16px;">The aim is simple: <strong>make it easier for farms to connect with local buyers</strong> — without the cost and hassle of building and maintaining a website. You focus on your produce and your customers; we provide the online shop, secure card checkout, and order handling.</p>`,
+    `<p style="margin:0 0 16px;line-height:1.6;">I'm <strong>Richard Evans</strong>, and I run <strong>Local Harvest</strong> — a service that helps UK farm shops sell direct to customers in their area, online.</p>`,
+    `<p style="margin:0 0 16px;line-height:1.6;">The aim is simple: <strong>make it easier for farms to connect with local buyers</strong> — without the cost and hassle of building and maintaining a website. You focus on your produce and your customers; we provide the online shop, secure card checkout, and order handling.</p>`,
     brandedInfoBox(`
       <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#5c6b44;">What Local Harvest offers your farm</p>
       <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.7;">
@@ -79,20 +80,30 @@ export function buildFarmOutreachEmail({
         <li>Update orders as you go (preparing, ready) — customers stay informed</li>
       </ul>
     `),
-    `<p style="margin:0 0 16px;">There's a <strong>30-day free trial</strong>, then plans from <strong>£19/month</strong>. We charge a small commission on product sales after the trial — <strong>not on delivery fees</strong>, which are yours in full.</p>`,
+    `<p style="margin:0 0 16px;line-height:1.6;">There's a <strong>30-day free trial</strong>, then plans from <strong>£19/month</strong>. We charge a small commission on product sales after the trial — <strong>not on delivery fees</strong>, which are yours in full.</p>`,
     brandedButton(forFarmersUrl, "See how it works"),
-    `<p style="margin:24px 0 16px;">I'm getting in touch because I'd like to <strong>work with farm shops like yours</strong> and support the kind of direct, local trade that keeps communities connected to where their food comes from. If online orders would help you reach more customers — or make click &amp; collect and delivery simpler to manage — I'd be glad to show you how it works and help you get set up.</p>`,
-    `<p style="margin:0 0 16px;">Would you be open to a short conversation? I'm happy to visit if you're local and walk you through it on your phone.</p>`,
-    `<p style="margin:0;">Warm regards,<br><strong>Richard Evans</strong><br>Local Harvest<br><a href="mailto:richardevans@local-harvests.co.uk" style="color:#5c6b44;">richardevans@local-harvests.co.uk</a></p>`,
+    `<p style="margin:24px 0 16px;line-height:1.6;">I'm getting in touch because I'd like to <strong>work with farm shops like yours</strong> and support the kind of direct, local trade that keeps communities connected to where their food comes from. If online orders would help you reach more customers — or make click &amp; collect and delivery simpler to manage — I'd be glad to show you how it works and help you get set up.</p>`,
+    `<p style="margin:0 0 16px;line-height:1.6;">Would you be open to a short conversation? I'm happy to visit if you're local and walk you through it on your phone.</p>`,
+    `<p style="margin:0;line-height:1.6;">Warm regards,<br><strong>Richard Evans</strong><br>Local Harvest<br><a href="mailto:richardevans@local-harvests.co.uk" style="color:#5c6b44;">richardevans@local-harvests.co.uk</a></p>`,
   ].join("");
 
   const html = buildBrandedEmailHtml({
     title: "Sell online. Stay local.",
     bodyHtml,
+    logoUrl: `${appUrl}/logos/logo-hero-light.png`,
+    footerNote:
+      "You received this from Richard Evans at Local Harvest. Reply to richardevans@local-harvests.co.uk.",
   });
 
   return { subject, text, html };
 }
 
-export const FARM_OUTREACH_FROM =
-  "Richard Evans <richardevans@local-harvests.co.uk>";
+/** Use the same verified mailbox as order emails — better deliverability than a new address. */
+export function getFarmOutreachFrom() {
+  const configured = getEmailFrom();
+  const match = configured.match(/<([^>]+)>/);
+  const mailbox = match?.[1] ?? "orders@local-harvests.co.uk";
+  return `Richard Evans · Local Harvest <${mailbox}>`;
+}
+
+export const FARM_OUTREACH_REPLY_TO = "richardevans@local-harvests.co.uk";
