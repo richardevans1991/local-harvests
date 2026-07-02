@@ -1,4 +1,4 @@
-import { getAppUrl } from "@/lib/app-url";
+import { getEmailAppUrl } from "@/lib/app-url";
 import { getEmailFrom } from "@/lib/email";
 import {
   brandedButton,
@@ -18,7 +18,7 @@ export function buildFarmOutreachEmail({
   farmName,
   personalLine,
 }: FarmOutreachEmailOptions = {}) {
-  const appUrl = getAppUrl();
+  const appUrl = getEmailAppUrl();
   const forFarmersUrl = `${appUrl}/for-farmers`;
   const greeting = recipientName
     ? `Hi ${recipientName},`
