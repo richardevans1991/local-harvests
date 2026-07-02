@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAppUrl } from "@/lib/app-url";
+import { toStripeImageUrl } from "@/lib/image-utils";
 import { getSessionUser } from "@/lib/auth";
 import { validateFulfillmentChoice, type FulfillmentMethod } from "@/lib/fulfillment";
 import {
@@ -126,17 +127,20 @@ export async function POST(request: Request) {
       mode: "payment",
       customer_email: email,
       line_items: [
-        ...items.map((item) => ({
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: item.name,
-              images: item.image ? [item.image] : undefined,
+        ...items.map((item) => {
+          const imageUrl = toStripeImageUrl(item.image, appUrl);
+          return {
+            price_data: {
+              currency: "gbp",
+              product_data: {
+                name: item.name,
+                images: imageUrl ? [imageUrl] : undefined,
+              },
+              unit_amount: Math.round(item.price * 100),
             },
-            unit_amount: Math.round(item.price * 100),
-          },
-          quantity: item.quantity,
-        })),
+            quantity: item.quantity,
+          };
+        }),
         ...farmDeliveryFees
           .filter((line) => line.fee > 0)
           .map((line) => ({
